@@ -253,16 +253,24 @@ textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;b
      your quota. For a public site, put it behind a small
      server-side proxy instead of calling api.z.ai from the
      browser directly.
-   ========================================================= */
-const ZAI_API_KEY = "ea4db86c17444e108d258947daca7509.Fd0N3DojJ39GVjgK";
-const ZAI_URL = "https://api.z.ai/api/paas/v4/chat/completions";
-const MODEL = "glm-5.3";
-// If direct browser calls to Z.ai get blocked by CORS (see the
-// "AI không trả lời" note below), point this at your own proxy
-// (e.g. a small Cloudflare Worker) that forwards to ZAI_URL and
-// adds the Authorization header server-side. Leave empty to call
-// Z.ai directly.
-const PROXY_URL = "https://api.z.ai/api/paas/v4/chat/completions";
+   ========================================================= 
+   curl -X POST "https://api.z.ai/api/paas/v4/chat/completions" \
+-H "Content-Type: application/json" \
+-H "Accept-Language: en-US,en" \
+-H "Authorization: Bearer ea4db86c17444e108d258947daca7509" \
+-d '{
+    "model": "glm-5.3",
+    "messages": [
+        {
+            "role": "system",
+            "content": "You are a helpful AI assistant."
+        },
+        {
+            "role": "user",
+            "content": "Hello, please introduce yourself."
+        }
+    ]
+}'
 
 const GOOGLE_CLIENT_ID = "125121564255-gc3kvvk33inpfgfn04s25cnd0tp7m1av.apps.googleusercontent.com";
 const USER_KEY = "nova_user_v1";
