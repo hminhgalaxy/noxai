@@ -4742,145 +4742,67 @@ Do not identify yourself by the provider model name.
 `;
 }
 
-function extractAIText(response){
-
-  if(response==null){
-    return "";
-  }
-
-  if(typeof response==="string"){
-    return response;
-  }
-
-  const content=
-    response?.message?.content ??
-    response?.choices?.[0]?.message?.content ??
-    response?.content ??
-    response?.text;
-
-  if(typeof content==="string"){
-    return content;
-  }
-
-  if(Array.isArray(content)){
-
-    return content
-      .map(part=>{
-        if(typeof part==="string") return part;
-
-        return (
-          part?.text ??
-          part?.content ??
-          ""
-        );
-      })
-      .join("");
-  }
-
-  if(response?.message){
-    if(typeof response.message==="string"){
-      return response.message;
-    }
-  }
-
-  return "";
-}
-
-function extractStreamChunk(chunk){
-  if(typeof chunk === "string") return chunk;
-  if(!chunk || typeof chunk !== "object") return "";
-  // Puter streaming chunks use { type: "text", text: "..." }.
-  if(chunk.type === "error"){
-    throw new Error(chunk.message || "Puter stream error");
-  }
-  if(chunk.type === "text" && typeof chunk.text === "string") return chunk.text;
-  const delta = chunk?.choices?.[0]?.delta?.content;
-  if(typeof delta === "string") return delta;
-  if(Array.isArray(delta)) return delta.map(x=>x?.text || "").join("");
-  const value = chunk?.text ?? chunk?.delta?.text ?? chunk?.message?.content ?? chunk?.content;
-  if(typeof value === "string") return value;
-  if(Array.isArray(value)) return value.map(x=>typeof x === "string" ? x : (x?.text || "")).join("");
-  return "";
-}
-
 /*
- * Puter auth/billing belongs to the visitor's Puter session. The app must
- * never expose a shared private token in this public HTML.
+ * Stable Puter integration.
+ * Keep the same non-streaming call shape used by the original working build:
+ *   await puter.ai.chat(prompt, { model: modelName })
+ * Streaming/listModels options were removed because they can return a shape
+ * this UI does not consistently consume across Puter SDK/model versions.
  */
+function extractAIText(response){
+  if(response == null) return "";
+  if(typeof response === "string") return response;
+
+  const candidates = [
+    response?.message?.content,
+    response?.choices?.[0]?.message?.content,
+    response?.content,
+    response?.text,
+    response?.message
+  ];
+
+  for(const value of candidates){
+    if(typeof value === "string" && value.trim()) return value;
+    if(Array.isArray(value)){
+      const text = value.map(part => {
+        if(typeof part === "string") return part;
+        if(part && typeof part === "object"){
+          return part.text ?? part.content ?? "";
+        }
+        return "";
+      }).join("");
+      if(text.trim()) return text;
+    }
+  }
+  return "";
+}
+
 async function callPuterAI(prompt, modelName, onChunk){
-  const ai = window.puter?.ai;
-  if(typeof ai?.chat !== "function"){
-    throw new Error("Puter.js chưa tải xong. Hãy kiểm tra mạng rồi tải lại trang.");
+  const puterAI = window.puter?.ai;
+  if(typeof puterAI?.chat !== "function"){
+    throw new Error("Puter.js chưa tải xong. Hãy tải lại trang và kiểm tra kết nối mạng.");
+  }
+  if(!modelName || typeof modelName !== "string"){
+    throw new Error("Chưa chọn model AI hợp lệ trong cài đặt.");
   }
 
-  // Check the live catalog when available. Never invent model IDs or blindly
-  // retry a failed request (auth, quota and network errors must stay visible).
-  let available = [];
-  if(typeof ai.listModels === "function"){
-    try{
-      const catalog = await ai.listModels();
-      if(Array.isArray(catalog)){
-        available = catalog.map(item=>typeof item==="string" ? item : item?.id)
-          .filter(id=>typeof id==="string" && id.trim());
-      }
-    }catch(_catalogError){
-      // Catalog endpoint may be temporarily unavailable; try the configured ID.
-    }
-  }
+  updateThinkingProgress(`Đang gửi yêu cầu đến ${modelName}…`, "");
 
-  const preferred = [
-    modelName,
-    "gpt-5.6-luna",
-    "gemini-3.1-flash-lite",
-    "claude-opus-4-8",
-    "gpt-5-nano"
-  ].filter(Boolean);
-
-  let chosen = modelName;
-  if(available.length){
-    const availableSet = new Set(available.map(id=>id.toLowerCase()));
-    chosen = preferred.find(id=>availableSet.has(id.toLowerCase())) ||
-             available[0];
-  }
-  if(!chosen) chosen = "gpt-5-nano";
-
-  updateThinkingProgress(`Đang kết nối model ${chosen}…`, "");
-
-  let response;
-  try{
-    response = await ai.chat(prompt, {
-      model: chosen,
-      stream: true,
-      normalize: true
-    });
-  }catch(error){
-    throw error;
-  }
-
-  let streamed = "";
-  if(response && typeof response[Symbol.asyncIterator] === "function"){
-    for await(const chunk of response){
-      if(!state.isGenerating) return "";
-      const piece = extractStreamChunk(chunk);
-      if(piece){
-        streamed += piece;
-        onChunk?.(streamed);
-      }
-    }
-    if(streamed.trim()) return streamed.trim();
-
-    // Empty stream is an explicit provider failure. Do not fire a duplicate
-    // billable request silently; surface it so the UI can explain/retry.
-    throw new Error("Puter đã kết thúc luồng nhưng không gửi nội dung.");
-  }
-
-  // Some SDK builds may return a normal response despite stream:true.
+  // Do not pass stream/normalize/listModels options: preserve the known
+  // Puter chat(prompt, {model}) invocation and await its completed response.
+  const response = await puterAI.chat(prompt, { model: modelName });
   const text = extractAIText(response).trim();
-  if(text){
-    onChunk?.(text);
-    return text;
+
+  if(!text){
+    // Include shape hints without dumping private response data into the UI.
+    const keys = response && typeof response === "object"
+      ? Object.keys(response).slice(0, 8).join(", ")
+      : typeof response;
+    throw new Error(`Puter đã phản hồi nhưng không tìm thấy nội dung văn bản (dạng: ${keys || "rỗng"}).`);
   }
-  throw new Error("Puter trả về phản hồi rỗng. Hãy thử lại hoặc đổi model.");
+
+  onChunk?.(text);
+  return text;
 }
 
 function aiFriendlyError(error){
@@ -4944,7 +4866,7 @@ async function requestAI(userMessageId,replaceMessageId=null){
     updateThinkingProgress("Đang gửi yêu cầu đến AI…","");
     const result=await callPuterAI(prompt,model.providerModel,(partial)=>{
       if(generationId!==state.generationId) return;
-      state.generationStage="Đang soạn câu trả lời…";
+      state.generationStage="Đã nhận phản hồi từ AI…";
       state.streamingText=partial;
       // Throttle DOM refresh while tokens arrive.
       if(!state._streamRenderPending){
@@ -6620,4 +6542,4 @@ export default async function handler(req,res){
 =============================================================
 -->
 </body>
-     </html>
+       </html>
