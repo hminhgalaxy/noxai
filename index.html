@@ -15,33 +15,46 @@
 body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
 button,textarea,select{font:inherit}
 button{color:inherit}
+svg{display:block}
 .bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;transition:transform .4s cubic-bezier(.2,.7,.3,1)}
 .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.28;animation:orb 13s ease-in-out infinite alternate}
 .o1{width:40vw;height:40vw;background:#6855ff;left:-12vw;top:-12vw}.o2{width:35vw;height:35vw;background:#1bbce7;right:-12vw;top:8vh;animation-delay:-5s}.o3{width:35vw;height:35vw;background:#5534a6;left:35vw;bottom:-25vw;animation-delay:-9s}
 @keyframes orb{to{transform:translate(4vw,3vh) scale(1.12)}}
 .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent)}
+
+/* ---------- login gate ---------- */
+.loginGate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(5,5,9,.6);backdrop-filter:blur(6px)}
+.loginCard{width:min(360px,88vw);border:1px solid var(--line);background:rgba(17,18,27,.92);border-radius:22px;padding:32px 26px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.55);animation:rise .5s ease both}
+.loginCard .heroLogo{width:74px;height:74px;margin:0 auto 14px;filter:drop-shadow(0 0 30px rgba(142,125,255,.45));animation:logoFloat 4s ease-in-out infinite}
+.loginCard h2{font-size:21px;margin:0 0 8px;letter-spacing:-.02em}
+.loginCard p{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 22px}
+#gsiButton{display:flex;justify-content:center;min-height:44px}
+.loginNote{margin-top:16px;font-size:10.5px;color:#6e7384;line-height:1.5}
+
 .app{position:relative;height:100dvh;display:grid;grid-template-columns:270px 1fr;z-index:1}
-.side{border-right:1px solid var(--line);background:rgba(5,5,9,.72);backdrop-filter:blur(24px);padding:20px 15px;display:flex;flex-direction:column;gap:18px}
+.side{border-right:1px solid var(--line);background:rgba(5,5,9,.72);backdrop-filter:blur(24px);padding:20px 15px;display:flex;flex-direction:column;gap:18px;position:relative}
 .brand{display:flex;align-items:center;gap:10px;padding:5px 8px 10px}
 .logo{width:44px;height:44px;filter:drop-shadow(0 0 22px rgba(142,125,255,.5));animation:logoFloat 4s ease-in-out infinite}
 @keyframes logoFloat{50%{transform:translateY(-4px) rotate(1deg)}}
 .brand b{font-size:17px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
-.new{border:1px solid rgba(142,125,255,.25);background:linear-gradient(135deg,rgba(142,125,255,.2),rgba(84,220,255,.07));padding:12px;border-radius:14px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.closeSide{position:absolute;top:14px;right:14px}
+.new{border:1px solid rgba(142,125,255,.25);background:linear-gradient(135deg,rgba(142,125,255,.2),rgba(84,220,255,.07));padding:12px;border-radius:14px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px}
 .new:hover{border-color:rgba(142,125,255,.55);box-shadow:0 0 0 1px rgba(142,125,255,.25),0 10px 30px rgba(104,92,255,.18)}
 .new:active{transform:scale(.98)}
-.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;text-align:left;color:#b9bdca;padding:11px 12px;border-radius:11px;cursor:pointer;transition:.15s}.nav button:hover{background:rgba(255,255,255,.05);color:white}
-.auth{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
-.googleBtn{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.14);background:#fff;color:#1f1f1f;font-weight:600;font-size:12.5px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:.15s;width:100%}
-.googleBtn:hover{filter:brightness(.96)}
-.googleBtn svg{width:16px;height:16px;min-width:16px}
-.userRow{display:none;align-items:center;gap:8px}
-.userRow img{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#222}
-.userRow .uinfo{min-width:0;flex:1}
-.userRow .uname{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-.userRow .uemail{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-.signOut{border:0;background:rgba(255,255,255,.06);color:var(--muted);font-size:10px;padding:5px 8px;border-radius:8px;cursor:pointer;white-space:nowrap}
-.signOut:hover{background:rgba(255,255,255,.12);color:#fff}
-.syncNote{font-size:10px;color:var(--muted);line-height:1.4}
+.new svg{transition:.2s}
+.new:hover svg{transform:rotate(90deg)}
+.nav{display:grid;gap:6px}
+.nav button{border:0;background:transparent;text-align:left;color:#b9bdca;padding:11px 12px;border-radius:11px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px}
+.nav button:hover{background:rgba(255,255,255,.05);color:white}
+.nav button:hover svg{transform:translateY(-1px)}
+.nav svg{transition:.2s;flex:none}
+.account{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:14px;padding:10px;display:flex;align-items:center;gap:9px}
+.account img{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#222}
+.account .uinfo{min-width:0;flex:1}
+.account .uname{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.account .uemail{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.signOut{border:0;background:rgba(255,255,255,.06);color:var(--muted);padding:7px;border-radius:9px;cursor:pointer;display:grid;place-items:center;transition:.15s}
+.signOut:hover{background:rgba(255,109,136,.18);color:var(--bad)}
 .status{margin-top:auto;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:15px;padding:13px;color:var(--muted);font-size:11px;line-height:1.55}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 13px var(--good);margin-right:6px;transition:.25s}
 .dot.warn{background:var(--warn);box-shadow:0 0 13px var(--warn);animation:dotPulse 1s infinite}
@@ -51,20 +64,31 @@ button{color:inherit}
 .top{border-bottom:1px solid var(--line);background:rgba(5,5,9,.48);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
 .model{display:flex;align-items:center;gap:10px}.pulse{width:9px;height:9px;background:var(--b);border-radius:50%;box-shadow:0 0 16px var(--b);animation:pulse 1.7s infinite}.model small{color:var(--muted);transition:.2s}
 @keyframes pulse{50%{opacity:.45;transform:scale(.72)}}
-.icon{width:39px;height:39px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:11px;cursor:pointer;transition:.15s}
+.icon{width:39px;height:39px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:11px;cursor:pointer;transition:.15s;display:grid;place-items:center}
 .icon:hover{background:rgba(255,255,255,.08);border-color:rgba(142,125,255,.35)}
+.icon:active{transform:scale(.9)}
+.icon svg{transition:.2s}
+.icon:hover svg{transform:scale(1.08)}
+.burger{position:relative}
+.burger span{position:absolute;left:10px;right:10px;height:2px;background:currentColor;border-radius:2px;transition:.25s cubic-bezier(.4,0,.2,1)}
+.burger span:nth-child(1){top:13px}
+.burger span:nth-child(2){top:19px}
+.burger span:nth-child(3){top:25px}
+.burger.open span:nth-child(1){top:19px;transform:rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0;transform:translateX(6px)}
+.burger.open span:nth-child(3){top:19px;transform:rotate(-45deg)}
 .chat{overflow:auto;padding:30px 20px 15px;scroll-behavior:smooth}
 .welcome{min-height:100%;display:grid;place-items:center;text-align:center}.hero{width:min(760px,100%);padding:20px;animation:rise .6s ease both}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .heroLogo{width:112px;height:112px;filter:drop-shadow(0 0 35px rgba(142,125,255,.4));animation:logoFloat 4s ease-in-out infinite}
-h1{font-size:clamp(38px,6vw,70px);line-height:1;letter-spacing:-.06em;margin:14px 0 15px}.grad{background:linear-gradient(100deg,#fff,#b9b0ff,#61e5ff);background-size:200% auto;color:transparent;background-clip:text;-webkit-background-clip:text;animation:shine 5s linear infinite}
+h1{font-size:clamp(38px,6vw,64px);line-height:1.08;letter-spacing:-.05em;margin:14px 0 15px}.grad{background:linear-gradient(100deg,#fff,#b9b0ff,#61e5ff);background-size:200% auto;color:transparent;background-clip:text;-webkit-background-clip:text;animation:shine 5s linear infinite}
 @keyframes shine{to{background-position:200% center}}
-.hero p{color:var(--muted);line-height:1.7;max-width:610px;margin:0 auto 25px}
-.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;text-align:left}.card{border:1px solid var(--line);background:rgba(255,255,255,.035);padding:14px;border-radius:15px;cursor:pointer;transition:.2s}.card:hover{transform:translateY(-2px);border-color:rgba(142,125,255,.4);box-shadow:0 10px 30px rgba(104,92,255,.15)}.card:active{transform:translateY(0) scale(.98)}.card b{font-size:13px;display:block}.card span{font-size:11px;color:var(--muted)}
+.hero p{color:var(--muted);line-height:1.7;max-width:520px;margin:0 auto}
 .messages{max-width:900px;margin:auto;display:grid;gap:17px}
 .msg{display:flex;gap:10px;animation:rise .3s cubic-bezier(.2,.7,.3,1) both}
 .msg.user{justify-content:flex-end}
-.avatar{width:32px;height:32px;min-width:32px;border-radius:10px;display:grid;place-items:center;background:rgba(142,125,255,.13);border:1px solid rgba(142,125,255,.2);font-size:11px;font-weight:800;transition:.25s}
+.avatar{width:32px;height:32px;min-width:32px;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:rgba(142,125,255,.13);border:1px solid rgba(142,125,255,.2);font-size:11px;font-weight:800;transition:.25s}
+.avatar img{width:100%;height:100%;object-fit:cover}
 .user .avatar{order:2;background:rgba(84,220,255,.08)}
 .avatar.think{animation:avatarPulse 1.3s ease-in-out infinite;border-color:rgba(142,125,255,.55)}
 @keyframes avatarPulse{0%,100%{box-shadow:0 0 0 0 rgba(142,125,255,.35)}50%{box-shadow:0 0 0 7px rgba(142,125,255,0)}}
@@ -84,33 +108,55 @@ h1{font-size:clamp(38px,6vw,70px);line-height:1;letter-spacing:-.06em;margin:14p
 @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
 .thinkToggle{border:1px dashed rgba(142,125,255,.35);background:rgba(142,125,255,.06);color:#b9b0ff;font-size:11px;padding:6px 10px;border-radius:10px;cursor:pointer;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px;transition:.15s}
 .thinkToggle:hover{background:rgba(142,125,255,.14)}
-.thinkBox{max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .25s ease,margin .35s ease;opacity:0;font-size:12px;color:var(--muted);border-left:2px solid rgba(142,125,255,.3);padding-left:10px;margin:0 0 0;white-space:pre-wrap}
+.thinkBox{max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .25s ease,margin .35s ease;opacity:0;font-size:12px;color:var(--muted);border-left:2px solid rgba(142,125,255,.3);padding-left:10px;margin:0;white-space:pre-wrap}
 .thinkBox.open{max-height:400px;opacity:1;overflow:auto;margin:0 0 8px}
-.msgActions{display:flex;gap:6px;margin-top:6px;opacity:0;transition:.15s;height:20px}
+.msgActions{display:flex;gap:6px;margin-top:6px;opacity:0;transition:.15s;height:22px}
 .msg:hover .msgActions{opacity:1}
-.msgActions button{border:0;background:rgba(255,255,255,.05);color:var(--muted);font-size:10px;padding:4px 8px;border-radius:7px;cursor:pointer;transition:.15s}
+.msgActions button{border:0;background:rgba(255,255,255,.05);color:var(--muted);font-size:10px;padding:4px 8px;border-radius:7px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:5px}
 .msgActions button:hover{background:rgba(255,255,255,.1);color:white}
+.msgActions svg{width:12px;height:12px}
 .composerWrap{padding:12px 20px 16px;background:linear-gradient(to top,rgba(5,5,9,1),rgba(5,5,9,.78),transparent)}
 .composer{max-width:900px;margin:auto;border:1px solid rgba(255,255,255,.13);background:rgba(17,18,27,.86);backdrop-filter:blur(22px);border-radius:21px;padding:9px;box-shadow:0 24px 80px rgba(0,0,0,.48);transition:border-color .2s}
 .composer:focus-within{border-color:rgba(142,125,255,.4)}
 textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;border:0;outline:0;background:transparent;color:white;padding:10px 11px;line-height:1.5}textarea::placeholder{color:#6e7384}
 .row{display:flex;align-items:center;justify-content:space-between;gap:8px}.tools{display:flex;gap:7px}.sel{border:1px solid var(--line);background:#0d0e14;color:#cfd3df;border-radius:9px;padding:7px 8px;font-size:11px;outline:0}
-.send,.stop{width:43px;height:38px;border:0;border-radius:12px;cursor:pointer;transition:.15s}
+.send,.stop{width:43px;height:38px;border:0;border-radius:12px;cursor:pointer;transition:.15s;display:grid;place-items:center}
 .send{background:linear-gradient(135deg,var(--a),#685cff);box-shadow:0 10px 30px rgba(104,92,255,.25)}
 .send:hover{filter:brightness(1.08)}
+.send:active{transform:scale(.92)}
 .send:disabled{opacity:.45;cursor:not-allowed}
 .stop{background:linear-gradient(135deg,#ff6d88,#ff9a6d);box-shadow:0 10px 30px rgba(255,109,136,.25);display:none}
+.stop:active{transform:scale(.92)}
 .mobile{display:none}
 .toast{position:fixed;left:50%;bottom:105px;transform:translateX(-50%) translateY(15px);opacity:0;pointer-events:none;background:#171822;border:1px solid var(--line);padding:10px 14px;border-radius:12px;font-size:12px;z-index:20;transition:.25s}.toast.show{opacity:1;transform:translateX(-50%)}
-@media(max-width:800px){.app{grid-template-columns:1fr}.side{position:fixed;z-index:10;inset:0 auto 0 0;width:270px;transform:translateX(-105%);transition:.25s;box-shadow:30px 0 80px #000}.side.open{transform:none}.mobile{display:block}.top{padding:0 13px}.cards{grid-template-columns:1fr}.hero h1{font-size:43px}}
+@media(max-width:800px){.app{grid-template-columns:1fr}.side{position:fixed;z-index:10;inset:0 auto 0 0;width:270px;transform:translateX(-105%);transition:.25s;box-shadow:30px 0 80px #000}.side.open{transform:none}.mobile{display:flex}.top{padding:0 13px}.hero h1{font-size:38px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <div class="bg" id="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="grid"></div></div>
 
-<div class="app">
+<div class="loginGate" id="loginGate">
+  <div class="loginCard">
+    <svg class="heroLogo" viewBox="0 0 100 100">
+      <defs><linearGradient id="hg0" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a090ff"/><stop offset=".5" stop-color="#75b8ff"/><stop offset="1" stop-color="#55e4ff"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="42" fill="none" stroke="url(#hg0)" stroke-width="1" opacity=".25"/>
+      <circle cx="50" cy="50" r="32" fill="rgba(142,125,255,.04)" stroke="url(#hg0)" stroke-width="2" opacity=".55"/>
+      <path d="M26 30h48L37 70h37" fill="none" stroke="url(#hg0)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="82" cy="24" r="4" fill="#fff"/><circle cx="18" cy="77" r="3" fill="#55e4ff"/>
+    </svg>
+    <h2>Chào mừng đến với NOVA AI</h2>
+    <p>Đăng nhập bằng Google để bắt đầu trò chuyện với GLM-5.3. Lịch sử chat của bạn sẽ được đồng bộ theo tài khoản.</p>
+    <div id="gsiButton"></div>
+    <div class="loginNote">Bằng việc đăng nhập, tên và ảnh đại diện Google của bạn sẽ được dùng để cá nhân hoá giao diện.</div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
 <aside class="side" id="side">
+  <button class="icon mobile closeSide" id="closeSide" aria-label="Đóng menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
   <div class="brand">
     <svg class="logo" viewBox="0 0 100 100">
       <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9d8cff"/><stop offset="1" stop-color="#55e4ff"/></linearGradient></defs>
@@ -120,31 +166,37 @@ textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;b
     </svg>
     <div><b>NOVA AI</b><small>Powered by Z.ai</small></div>
   </div>
-  <button class="new" id="new">＋ New conversation</button>
+  <button class="new" id="new" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><path d="M12 5v14M5 12h14"/></svg>
+    New conversation
+  </button>
   <div class="nav">
-    <button id="clear">⌫ Clear conversation</button>
-    <button id="export">⇩ Export conversation</button>
-  </div>
-  <div class="auth" id="authBox">
-    <button class="googleBtn" id="googleSignIn" type="button">
-      <svg viewBox="0 0 46 46"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
-      Đăng nhập với Google
+    <button id="clear" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7"/></svg>
+      Clear conversation
     </button>
-    <div class="userRow" id="userRow">
-      <img id="userPhoto" src="" alt="">
-      <div class="uinfo"><span class="uname" id="userName"></span><span class="uemail" id="userEmail"></span></div>
-      <button class="signOut" id="signOutBtn" type="button">Đăng xuất</button>
-    </div>
-    <div class="syncNote" id="syncNote">Chưa đăng nhập — lưu cục bộ trên máy này.</div>
+    <button id="export" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 4v11m0 0-4-4m4 4 4-4M4 18h16"/></svg>
+      Export conversation
+    </button>
   </div>
-  <div class="status"><span class="dot" id="statusDot"></span><b id="statusText" style="color:#eef1fa">Z.ai API ready</b><br>GLM-5.3 · Deep reasoning<br><span style="color:#777c8c">Single-file build</span></div>
+  <div class="account" id="accountBox" style="display:none">
+    <img id="userPhoto" src="" alt="">
+    <div class="uinfo"><span class="uname" id="userName"></span><span class="uemail" id="userEmail"></span></div>
+    <button class="signOut" id="signOutBtn" type="button" aria-label="Đăng xuất">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </button>
+  </div>
+  <div class="status"><span class="dot" id="statusDot"></span><b id="statusText" style="color:#eef1fa">Z.ai API ready</b><br>GLM-5.3 · Deep reasoning<br><span style="color:#777c8c" id="syncNote">Single-file build</span></div>
 </aside>
 
 <main class="main">
 <header class="top">
-  <button class="icon mobile" id="menu">☰</button>
+  <button class="icon mobile burger" id="menu" aria-label="Menu"><span></span><span></span><span></span></button>
   <div class="model"><span class="pulse"></span><div><b>GLM-5.3</b><small id="modelStatus"> · Deep reasoning</small></div></div>
-  <button class="icon" id="clearTop">⌫</button>
+  <button class="icon" id="clearTop" aria-label="Xoá hội thoại">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m2 0-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7"/></svg>
+  </button>
 </header>
 
 <section class="chat" id="chat">
@@ -158,14 +210,8 @@ textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;b
         <path d="M17 50a33 33 0 0 1 66 0" fill="none" stroke="#fff" stroke-width="1" opacity=".3" stroke-dasharray="2 8"/>
         <circle cx="82" cy="24" r="4" fill="#fff"/><circle cx="18" cy="77" r="3" fill="#55e4ff"/>
       </svg>
-      <h1>Think deeper.<br><span class="grad">Build beautifully.</span></h1>
-      <p>AI workspace chạy trực tiếp với Z.ai GLM-5.3. Nhắn câu hỏi ở bên dưới và AI sẽ trả lời (streaming trực tiếp + hiển thị quá trình suy nghĩ).</p>
-      <div class="cards">
-        <button class="card" data-p="Giải thích cho tôi JavaScript async/await thật dễ hiểu."><b>Learn something</b><span>Giải thích rõ ràng</span></button>
-        <button class="card" data-p="Viết cho tôi một website HTML/CSS/JavaScript premium responsive."><b>Build a website</b><span>Code sạch, hiện đại</span></button>
-        <button class="card" data-p="Phân tích ý tưởng này và lập kế hoạch triển khai từng bước."><b>Analyze an idea</b><span>Reasoning có cấu trúc</span></button>
-        <button class="card" data-p="Giúp tôi debug đoạn code sau và chỉ ra lỗi:"><b>Debug code</b><span>Tìm lỗi và sửa lỗi</span></button>
-      </div>
+      <h1>Chào <span class="grad" id="greetName">bạn</span>,<br>bạn muốn làm gì hôm nay?</h1>
+      <p>Nhắn gì đó ở bên dưới — NOVA sẵn sàng trả lời, viết code, phân tích ý tưởng và debug giúp bạn.</p>
     </div>
   </div>
   <div class="messages" id="messages"></div>
@@ -179,8 +225,12 @@ textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;b
     <select class="sel" id="reason"><option value="low">Think Low</option><option value="high" selected>Think High</option><option value="max">Think Max</option></select>
     <select class="sel" id="temp"><option value=".3">Focused</option><option value=".7" selected>Balanced</option><option value="1">Creative</option></select>
   </div>
-  <button class="send" id="send" type="submit">➤</button>
-  <button class="stop" id="stop" type="button">■</button>
+  <button class="send" id="send" type="submit" aria-label="Gửi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg>
+  </button>
+  <button class="stop" id="stop" type="button" aria-label="Dừng">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+  </button>
 </div>
 </form>
 </div>
@@ -188,23 +238,35 @@ textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;b
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script>
 /* =========================================================
    NOVA SINGLE-FILE Z.AI CLIENT
-   The supplied key is intentionally embedded per request.
-   For a public website, move it to a server-side proxy —
-   an API key hard-coded in client-side JS is visible to
-   anyone who views the page source.
+   - Login: Google Identity Services (One Tap / Sign-in button)
+     using the OAuth Web Client ID directly — NOT Firebase Auth.
+   - Storage: Firebase Realtime Database, keyed by the Google
+     account's "sub" id (its unique Google user id).
+   - The Z.ai key below is intentionally embedded per request.
+     Anyone who views this page's source can read it and use
+     your quota. For a public site, put it behind a small
+     server-side proxy instead of calling api.z.ai from the
+     browser directly.
    ========================================================= */
 const ZAI_API_KEY = "ea4db86c17444e108d258947daca7509.Fd0N3DojJ39GVjgK";
 const ZAI_URL = "https://api.z.ai/api/paas/v4/chat/completions";
 const MODEL = "glm-5.3";
-const STORAGE_KEY = "nova_chat_v1";
+// If direct browser calls to Z.ai get blocked by CORS (see the
+// "AI không trả lời" note below), point this at your own proxy
+// (e.g. a small Cloudflare Worker) that forwards to ZAI_URL and
+// adds the Authorization header server-side. Leave empty to call
+// Z.ai directly.
+const PROXY_URL = "";
 
-/* ---------- Firebase (Auth + Realtime Database) ---------- */
+const GOOGLE_CLIENT_ID = "125121564255-gc3kvvk33inpfgfn04s25cnd0tp7m1av.apps.googleusercontent.com";
+const USER_KEY = "nova_user_v1";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDCn8HaXrDvksW56uAQxeooEfiZdVcUO-g",
   authDomain: "noxai-663ae.firebaseapp.com",
@@ -215,35 +277,86 @@ const firebaseConfig = {
   appId: "1:236435612991:web:a71c94dac98dd33aea5f8a",
   measurementId: "G-CH90YX6LEK"
 };
-// 125121564255-gc3kvvk33inpfgfn04s25cnd0tp7m1av.apps.googleusercontent.com is the
-// OAuth Web Client ID Firebase already generated for this project — Firebase Auth
-// picks it up automatically from firebaseConfig/authDomain, no need to set it here.
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const rtdb = firebase.database();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-let currentUser = null;
 
 const $ = s => document.querySelector(s);
 const input = $("#input"), send = $("#send"), stopBtn = $("#stop"),
       messages = $("#messages"), welcome = $("#welcome"), chat = $("#chat"),
-      statusDot = $("#statusDot"), statusText = $("#statusText"), modelStatus = $("#modelStatus");
+      statusDot = $("#statusDot"), statusText = $("#statusText"), modelStatus = $("#modelStatus"),
+      loginGate = $("#loginGate"), appEl = $("#app"), sideEl = $("#side"), menuBtn = $("#menu");
 let history = [];
+let currentUser = null; // {sub, name, email, picture}
 let currentController = null;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ---------- persistence (Firebase when signed in, else localStorage) ---------- */
-function save(){
-  if(currentUser){
-    rtdb.ref("users/"+currentUser.uid+"/history").set(history).catch(()=>toast("Không lưu được lên Firebase"));
-  }else{
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); }catch{}
-  }
+/* ---------- Google Identity Services login (no Firebase Auth) ---------- */
+function decodeJwt(token){
+  try{
+    const base64 = token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");
+    const json = decodeURIComponent(atob(base64).split("").map(c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    return JSON.parse(json);
+  }catch{ return null; }
 }
-function load(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw){ const parsed = JSON.parse(raw); if(Array.isArray(parsed)) history = parsed.map(m=>({...m, streaming:false})); } }catch{} }
+function handleCredentialResponse(resp){
+  const payload = decodeJwt(resp.credential);
+  if(!payload || !payload.sub){ toast("Đăng nhập thất bại"); return; }
+  currentUser = { sub: payload.sub, name: payload.name || "Bạn", email: payload.email || "", picture: payload.picture || "" };
+  try{ localStorage.setItem(USER_KEY, JSON.stringify(currentUser)); }catch{}
+  onLogin();
+}
+function tryRestoreSession(){
+  try{
+    const raw = localStorage.getItem(USER_KEY);
+    if(raw){ const u = JSON.parse(raw); if(u && u.sub){ currentUser = u; return true; } }
+  }catch{}
+  return false;
+}
+function initGoogle(){
+  if(!(window.google && google.accounts && google.accounts.id)){ setTimeout(initGoogle, 200); return; }
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
+  const btnHost = $("#gsiButton");
+  if(btnHost) google.accounts.id.renderButton(btnHost, { theme:"filled_black", size:"large", shape:"pill", text:"signin_with", width:280 });
+  if(tryRestoreSession()){ onLogin(); }
+  else{ try{ google.accounts.id.prompt(); }catch{} }
+}
+async function onLogin(){
+  loginGate.style.display = "none";
+  appEl.style.display = "grid";
+  updateAccountUI();
+  await loadFromCloud();
+  render();
+  input.focus();
+}
+function signOutUser(){
+  currentController?.abort();
+  currentUser = null; history = [];
+  try{ localStorage.removeItem(USER_KEY); }catch{}
+  try{ google.accounts.id.disableAutoSelect(); }catch{}
+  appEl.style.display = "none";
+  loginGate.style.display = "grid";
+}
+function updateAccountUI(){
+  if(!currentUser) return;
+  $("#accountBox").style.display = "flex";
+  $("#userPhoto").src = currentUser.picture || "";
+  $("#userName").textContent = currentUser.name;
+  $("#userEmail").textContent = currentUser.email;
+  $("#syncNote").textContent = "Đồng bộ qua Firebase";
+  const firstName = currentUser.name.trim().split(/\s+/).pop();
+  $("#greetName").textContent = firstName || "bạn";
+}
+$("#signOutBtn").addEventListener("click", signOutUser);
+
+/* ---------- persistence (Firebase Realtime Database) ---------- */
+function dbRef(){ return rtdb.ref("users/"+currentUser.sub+"/history"); }
+function save(){
+  if(!currentUser) return;
+  dbRef().set(history).catch(()=>toast("Không lưu được lên Firebase (kiểm tra Database Rules)"));
+}
 async function loadFromCloud(){
   try{
-    const snap = await rtdb.ref("users/"+currentUser.uid+"/history").once("value");
+    const snap = await dbRef().once("value");
     const val = snap.exists() ? snap.val() : null;
     history = Array.isArray(val) ? val.map(m=>({...m, streaming:false})) : [];
   }catch(e){
@@ -251,25 +364,6 @@ async function loadFromCloud(){
     history = [];
   }
 }
-function updateAuthUI(user){
-  const signInBtn = $("#googleSignIn"), row = $("#userRow"), note = $("#syncNote");
-  if(user){
-    signInBtn.style.display = "none";
-    row.style.display = "flex";
-    $("#userPhoto").src = user.photoURL || "";
-    $("#userName").textContent = user.displayName || "Người dùng";
-    $("#userEmail").textContent = user.email || "";
-    note.textContent = "Đã đăng nhập — hội thoại đồng bộ qua Firebase.";
-  }else{
-    signInBtn.style.display = "";
-    row.style.display = "none";
-    note.textContent = "Chưa đăng nhập — lưu cục bộ trên máy này.";
-  }
-}
-$("#googleSignIn").addEventListener("click", ()=>{
-  auth.signInWithPopup(googleProvider).catch(err=>toast("Đăng nhập thất bại: "+(err?.message||err)));
-});
-$("#signOutBtn").addEventListener("click", ()=> auth.signOut());
 
 /* ---------- ui helpers ---------- */
 function toast(t){
@@ -296,23 +390,30 @@ function toggleStopButton(streaming){
   send.style.display = streaming ? "none" : "";
   stopBtn.style.display = streaming ? "" : "none";
 }
+function closeSideOnMobile(){ if(innerWidth<=800){ sideEl.classList.remove("open"); menuBtn.classList.remove("open"); } }
 
 /* ---------- render ---------- */
+const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+const regenIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg>';
+
 function render(){
   messages.innerHTML = history.map((m,i)=>{
     const isUser = m.role==="user";
     const hasThink = !isUser && m.reasoning;
     const isLastAssistant = !isUser && i===history.length-1 && !m.streaming && m.content;
     const showDots = m.streaming && !m.content && !m.reasoning;
+    const avatarInner = isUser
+      ? (currentUser?.picture ? `<img src="${currentUser.picture}" alt="">` : "YOU")
+      : "N";
     return `
     <div class="msg ${m.role}">
-      <div class="avatar ${m.streaming?'think':''}">${isUser?"YOU":"N"}</div>
+      <div class="avatar ${m.streaming?'think':''}">${avatarInner}</div>
       <div class="bubbleWrap">
         ${hasThink ? `<button class="thinkToggle" data-t="${i}">🧠 ${m.streaming && !m.content ? "Đang suy nghĩ…" : "Xem quá trình suy nghĩ"}</button><div class="thinkBox ${m.streaming && !m.content ? "open":""}" id="think-${i}">${escapeHTML(m.reasoning)}</div>` : ""}
         <div class="bubble">${showDots ? '<span class="typingDots"><i>•</i><i>•</i><i>•</i></span>' : formatContent(m.content||"")}${m.streaming && m.content ? '<span class="cursor"></span>' : ""}</div>
         <div class="msgActions">
-          ${m.content ? `<button data-copy="${i}">⧉ Copy</button>` : ""}
-          ${isLastAssistant ? `<button data-regen="${i}">↻ Làm lại</button>` : ""}
+          ${m.content ? `<button data-copy="${i}">${copyIcon} Copy</button>` : ""}
+          ${isLastAssistant ? `<button data-regen="${i}">${regenIcon} Làm lại</button>` : ""}
         </div>
       </div>
     </div>`;
@@ -350,9 +451,13 @@ async function generate(){
       temperature: Number($("#temp").value),
       max_tokens: 8192
     };
-    const r = await fetch(ZAI_URL,{
+    const url = PROXY_URL || ZAI_URL;
+    const headers = { "Content-Type":"application/json" };
+    if(!PROXY_URL) headers["Authorization"] = "Bearer "+ZAI_API_KEY;
+
+    const r = await fetch(url,{
       method:"POST", mode:"cors",
-      headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+ZAI_API_KEY },
+      headers,
       body: JSON.stringify(body),
       signal: controller.signal
     });
@@ -363,7 +468,6 @@ async function generate(){
       const detail = data?.error?.message || data?.message || data?.error || ("HTTP "+r.status);
       throw new Error(detail);
     }
-
     if(!r.body){ throw new Error("Trình duyệt không hỗ trợ streaming response."); }
 
     const reader = r.body.getReader();
@@ -402,7 +506,7 @@ async function generate(){
     }else{
       let msg = err?.message || String(err);
       if(/Failed to fetch|NetworkError|CORS/i.test(msg)){
-        msg = "Không gọi được Z.ai từ trình duyệt. Có thể API đang chặn CORS. Nếu gặp lỗi này, cần chạy qua proxy/backend; file HTML đơn lẻ không thể tự vượt CORS.";
+        msg = "Không gọi được Z.ai từ trình duyệt — nhiều khả năng api.z.ai chặn CORS cho request từ trình duyệt (đây không phải lỗi trong code). Cần một proxy nhỏ ở server (đặt URL vào PROXY_URL trong code) để chuyển tiếp request kèm Authorization; file HTML đơn lẻ không thể tự vượt qua giới hạn CORS của Z.ai.";
       }
       history[aiIndex].content = "❌ " + msg;
       history[aiIndex].streaming = false;
@@ -433,26 +537,29 @@ function regenerate(i){
 $("#form").addEventListener("submit", e=>{ e.preventDefault(); ask(input.value); });
 input.addEventListener("input", resize);
 input.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); $("#form").requestSubmit(); } });
-document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ input.value=b.dataset.p; resize(); input.focus(); });
 stopBtn.onclick = ()=> currentController?.abort();
 
 function reset(){
   currentController?.abort();
   history = [];
-  if(currentUser){
-    rtdb.ref("users/"+currentUser.uid+"/history").remove().catch(()=>{});
-  }else{
-    try{ localStorage.removeItem(STORAGE_KEY); }catch{}
-  }
+  if(currentUser) dbRef().remove().catch(()=>{});
   render(); setStatus("good","Z.ai API ready"); input.focus();
+  closeSideOnMobile();
 }
-$("#new").onclick = reset; $("#clear").onclick = reset; $("#clearTop").onclick = reset;
+$("#new").onclick = reset;
+$("#clear").onclick = ()=>{ reset(); };
+$("#clearTop").onclick = reset;
 $("#export").onclick = ()=>{
   const text = history.map(x=>x.role.toUpperCase()+"\n"+x.content).join("\n\n---\n\n");
   const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"})); a.download="nova-chat.txt"; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  closeSideOnMobile();
 };
-$("#menu").onclick = ()=> $("#side").classList.toggle("open");
+menuBtn.onclick = ()=>{
+  const open = sideEl.classList.toggle("open");
+  menuBtn.classList.toggle("open", open);
+};
+$("#closeSide").onclick = closeSideOnMobile;
 
 /* subtle parallax on the background layer */
 if(!reduceMotion){
@@ -462,12 +569,7 @@ if(!reduceMotion){
   });
 }
 
-auth.onAuthStateChanged(async user=>{
-  currentUser = user;
-  updateAuthUI(user);
-  if(user){ await loadFromCloud(); } else { load(); }
-  render();
-});
+initGoogle();
 </script>
 </body>
 </html>
