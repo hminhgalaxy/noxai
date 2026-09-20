@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050509">
+<title>NOVA AI — Z.ai GLM-5.3</title>
+<style>
+:root{
+ --bg:#050509;--panel:rgba(17,18,27,.78);--panel2:rgba(24,25,37,.92);
+ --line:rgba(255,255,255,.10);--text:#f7f8ff;--muted:#9297aa;
+ --a:#8e7dff;--b:#54dcff;--good:#64e8a4;--warn:#ffcf5c;--bad:#ff6d88;
+}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,textarea,select{font:inherit}
+button{color:inherit}
+.bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;transition:transform .4s cubic-bezier(.2,.7,.3,1)}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.28;animation:orb 13s ease-in-out infinite alternate}
+.o1{width:40vw;height:40vw;background:#6855ff;left:-12vw;top:-12vw}.o2{width:35vw;height:35vw;background:#1bbce7;right:-12vw;top:8vh;animation-delay:-5s}.o3{width:35vw;height:35vw;background:#5534a6;left:35vw;bottom:-25vw;animation-delay:-9s}
+@keyframes orb{to{transform:translate(4vw,3vh) scale(1.12)}}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent)}
+.app{position:relative;height:100dvh;display:grid;grid-template-columns:270px 1fr;z-index:1}
+.side{border-right:1px solid var(--line);background:rgba(5,5,9,.72);backdrop-filter:blur(24px);padding:20px 15px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;padding:5px 8px 10px}
+.logo{width:44px;height:44px;filter:drop-shadow(0 0 22px rgba(142,125,255,.5));animation:logoFloat 4s ease-in-out infinite}
+@keyframes logoFloat{50%{transform:translateY(-4px) rotate(1deg)}}
+.brand b{font-size:17px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.new{border:1px solid rgba(142,125,255,.25);background:linear-gradient(135deg,rgba(142,125,255,.2),rgba(84,220,255,.07));padding:12px;border-radius:14px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.new:hover{border-color:rgba(142,125,255,.55);box-shadow:0 0 0 1px rgba(142,125,255,.25),0 10px 30px rgba(104,92,255,.18)}
+.new:active{transform:scale(.98)}
+.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;text-align:left;color:#b9bdca;padding:11px 12px;border-radius:11px;cursor:pointer;transition:.15s}.nav button:hover{background:rgba(255,255,255,.05);color:white}
+.auth{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.googleBtn{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.14);background:#fff;color:#1f1f1f;font-weight:600;font-size:12.5px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:.15s;width:100%}
+.googleBtn:hover{filter:brightness(.96)}
+.googleBtn svg{width:16px;height:16px;min-width:16px}
+.userRow{display:none;align-items:center;gap:8px}
+.userRow img{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#222}
+.userRow .uinfo{min-width:0;flex:1}
+.userRow .uname{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.userRow .uemail{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.signOut{border:0;background:rgba(255,255,255,.06);color:var(--muted);font-size:10px;padding:5px 8px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.signOut:hover{background:rgba(255,255,255,.12);color:#fff}
+.syncNote{font-size:10px;color:var(--muted);line-height:1.4}
+.status{margin-top:auto;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:15px;padding:13px;color:var(--muted);font-size:11px;line-height:1.55}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 13px var(--good);margin-right:6px;transition:.25s}
+.dot.warn{background:var(--warn);box-shadow:0 0 13px var(--warn);animation:dotPulse 1s infinite}
+.dot.bad{background:var(--bad);box-shadow:0 0 13px var(--bad)}
+@keyframes dotPulse{50%{opacity:.4}}
+.main{min-width:0;display:grid;grid-template-rows:72px 1fr auto}
+.top{border-bottom:1px solid var(--line);background:rgba(5,5,9,.48);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.model{display:flex;align-items:center;gap:10px}.pulse{width:9px;height:9px;background:var(--b);border-radius:50%;box-shadow:0 0 16px var(--b);animation:pulse 1.7s infinite}.model small{color:var(--muted);transition:.2s}
+@keyframes pulse{50%{opacity:.45;transform:scale(.72)}}
+.icon{width:39px;height:39px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:11px;cursor:pointer;transition:.15s}
+.icon:hover{background:rgba(255,255,255,.08);border-color:rgba(142,125,255,.35)}
+.chat{overflow:auto;padding:30px 20px 15px;scroll-behavior:smooth}
+.welcome{min-height:100%;display:grid;place-items:center;text-align:center}.hero{width:min(760px,100%);padding:20px;animation:rise .6s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.heroLogo{width:112px;height:112px;filter:drop-shadow(0 0 35px rgba(142,125,255,.4));animation:logoFloat 4s ease-in-out infinite}
+h1{font-size:clamp(38px,6vw,70px);line-height:1;letter-spacing:-.06em;margin:14px 0 15px}.grad{background:linear-gradient(100deg,#fff,#b9b0ff,#61e5ff);background-size:200% auto;color:transparent;background-clip:text;-webkit-background-clip:text;animation:shine 5s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.hero p{color:var(--muted);line-height:1.7;max-width:610px;margin:0 auto 25px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;text-align:left}.card{border:1px solid var(--line);background:rgba(255,255,255,.035);padding:14px;border-radius:15px;cursor:pointer;transition:.2s}.card:hover{transform:translateY(-2px);border-color:rgba(142,125,255,.4);box-shadow:0 10px 30px rgba(104,92,255,.15)}.card:active{transform:translateY(0) scale(.98)}.card b{font-size:13px;display:block}.card span{font-size:11px;color:var(--muted)}
+.messages{max-width:900px;margin:auto;display:grid;gap:17px}
+.msg{display:flex;gap:10px;animation:rise .3s cubic-bezier(.2,.7,.3,1) both}
+.msg.user{justify-content:flex-end}
+.avatar{width:32px;height:32px;min-width:32px;border-radius:10px;display:grid;place-items:center;background:rgba(142,125,255,.13);border:1px solid rgba(142,125,255,.2);font-size:11px;font-weight:800;transition:.25s}
+.user .avatar{order:2;background:rgba(84,220,255,.08)}
+.avatar.think{animation:avatarPulse 1.3s ease-in-out infinite;border-color:rgba(142,125,255,.55)}
+@keyframes avatarPulse{0%,100%{box-shadow:0 0 0 0 rgba(142,125,255,.35)}50%{box-shadow:0 0 0 7px rgba(142,125,255,0)}}
+.bubbleWrap{display:flex;flex-direction:column;max-width:min(780px,90%)}
+.user .bubbleWrap{align-items:flex-end}
+.bubble{white-space:pre-wrap;word-break:break-word;line-height:1.65;border:1px solid var(--line);background:rgba(255,255,255,.035);padding:13px 15px;border-radius:18px}
+.user .bubble{background:linear-gradient(135deg,rgba(142,125,255,.2),rgba(84,220,255,.06))}
+.bubble:empty{display:none}
+.bubble pre{background:#0a0b12;border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow:auto;margin:8px 0;font-size:12.5px}
+.bubble code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:5px}
+.bubble pre code{background:none;padding:0}
+.cursor{display:inline-block;width:2px;height:1em;background:var(--a);margin-left:2px;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.typingDots{display:inline-flex;gap:4px;padding:2px 0}
+.typingDots i{width:6px;height:6px;border-radius:50%;background:var(--muted);display:inline-block;animation:bounce 1.1s infinite ease-in-out;font-style:normal}
+.typingDots i:nth-child(2){animation-delay:.15s}.typingDots i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+.thinkToggle{border:1px dashed rgba(142,125,255,.35);background:rgba(142,125,255,.06);color:#b9b0ff;font-size:11px;padding:6px 10px;border-radius:10px;cursor:pointer;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.thinkToggle:hover{background:rgba(142,125,255,.14)}
+.thinkBox{max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .25s ease,margin .35s ease;opacity:0;font-size:12px;color:var(--muted);border-left:2px solid rgba(142,125,255,.3);padding-left:10px;margin:0 0 0;white-space:pre-wrap}
+.thinkBox.open{max-height:400px;opacity:1;overflow:auto;margin:0 0 8px}
+.msgActions{display:flex;gap:6px;margin-top:6px;opacity:0;transition:.15s;height:20px}
+.msg:hover .msgActions{opacity:1}
+.msgActions button{border:0;background:rgba(255,255,255,.05);color:var(--muted);font-size:10px;padding:4px 8px;border-radius:7px;cursor:pointer;transition:.15s}
+.msgActions button:hover{background:rgba(255,255,255,.1);color:white}
+.composerWrap{padding:12px 20px 16px;background:linear-gradient(to top,rgba(5,5,9,1),rgba(5,5,9,.78),transparent)}
+.composer{max-width:900px;margin:auto;border:1px solid rgba(255,255,255,.13);background:rgba(17,18,27,.86);backdrop-filter:blur(22px);border-radius:21px;padding:9px;box-shadow:0 24px 80px rgba(0,0,0,.48);transition:border-color .2s}
+.composer:focus-within{border-color:rgba(142,125,255,.4)}
+textarea{display:block;width:100%;resize:none;max-height:180px;min-height:53px;border:0;outline:0;background:transparent;color:white;padding:10px 11px;line-height:1.5}textarea::placeholder{color:#6e7384}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.tools{display:flex;gap:7px}.sel{border:1px solid var(--line);background:#0d0e14;color:#cfd3df;border-radius:9px;padding:7px 8px;font-size:11px;outline:0}
+.send,.stop{width:43px;height:38px;border:0;border-radius:12px;cursor:pointer;transition:.15s}
+.send{background:linear-gradient(135deg,var(--a),#685cff);box-shadow:0 10px 30px rgba(104,92,255,.25)}
+.send:hover{filter:brightness(1.08)}
+.send:disabled{opacity:.45;cursor:not-allowed}
+.stop{background:linear-gradient(135deg,#ff6d88,#ff9a6d);box-shadow:0 10px 30px rgba(255,109,136,.25);display:none}
+.mobile{display:none}
+.toast{position:fixed;left:50%;bottom:105px;transform:translateX(-50%) translateY(15px);opacity:0;pointer-events:none;background:#171822;border:1px solid var(--line);padding:10px 14px;border-radius:12px;font-size:12px;z-index:20;transition:.25s}.toast.show{opacity:1;transform:translateX(-50%)}
+@media(max-width:800px){.app{grid-template-columns:1fr}.side{position:fixed;z-index:10;inset:0 auto 0 0;width:270px;transform:translateX(-105%);transition:.25s;box-shadow:30px 0 80px #000}.side.open{transform:none}.mobile{display:block}.top{padding:0 13px}.cards{grid-template-columns:1fr}.hero h1{font-size:43px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="bg" id="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="grid"></div></div>
+
+<div class="app">
+<aside class="side" id="side">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 100 100">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9d8cff"/><stop offset="1" stop-color="#55e4ff"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="url(#lg)" stroke-width="2" opacity=".35"/>
+      <path d="M27 30h46L38 70h35" fill="none" stroke="url(#lg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="78" cy="22" r="4" fill="#fff"/><circle cx="21" cy="78" r="3" fill="#55e4ff"/>
+    </svg>
+    <div><b>NOVA AI</b><small>Powered by Z.ai</small></div>
+  </div>
+  <button class="new" id="new">＋ New conversation</button>
+  <div class="nav">
+    <button id="clear">⌫ Clear conversation</button>
+    <button id="export">⇩ Export conversation</button>
+  </div>
+  <div class="auth" id="authBox">
+    <button class="googleBtn" id="googleSignIn" type="button">
+      <svg viewBox="0 0 46 46"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
+      Đăng nhập với Google
+    </button>
+    <div class="userRow" id="userRow">
+      <img id="userPhoto" src="" alt="">
+      <div class="uinfo"><span class="uname" id="userName"></span><span class="uemail" id="userEmail"></span></div>
+      <button class="signOut" id="signOutBtn" type="button">Đăng xuất</button>
+    </div>
+    <div class="syncNote" id="syncNote">Chưa đăng nhập — lưu cục bộ trên máy này.</div>
+  </div>
+  <div class="status"><span class="dot" id="statusDot"></span><b id="statusText" style="color:#eef1fa">Z.ai API ready</b><br>GLM-5.3 · Deep reasoning<br><span style="color:#777c8c">Single-file build</span></div>
+</aside>
+
+<main class="main">
+<header class="top">
+  <button class="icon mobile" id="menu">☰</button>
+  <div class="model"><span class="pulse"></span><div><b>GLM-5.3</b><small id="modelStatus"> · Deep reasoning</small></div></div>
+  <button class="icon" id="clearTop">⌫</button>
+</header>
+
+<section class="chat" id="chat">
+  <div class="welcome" id="welcome">
+    <div class="hero">
+      <svg class="heroLogo" viewBox="0 0 100 100">
+        <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a090ff"/><stop offset=".5" stop-color="#75b8ff"/><stop offset="1" stop-color="#55e4ff"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="url(#hg)" stroke-width="1" opacity=".25"/>
+        <circle cx="50" cy="50" r="32" fill="rgba(142,125,255,.04)" stroke="url(#hg)" stroke-width="2" opacity=".55"/>
+        <path d="M26 30h48L37 70h37" fill="none" stroke="url(#hg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 50a33 33 0 0 1 66 0" fill="none" stroke="#fff" stroke-width="1" opacity=".3" stroke-dasharray="2 8"/>
+        <circle cx="82" cy="24" r="4" fill="#fff"/><circle cx="18" cy="77" r="3" fill="#55e4ff"/>
+      </svg>
+      <h1>Think deeper.<br><span class="grad">Build beautifully.</span></h1>
+      <p>AI workspace chạy trực tiếp với Z.ai GLM-5.3. Nhắn câu hỏi ở bên dưới và AI sẽ trả lời (streaming trực tiếp + hiển thị quá trình suy nghĩ).</p>
+      <div class="cards">
+        <button class="card" data-p="Giải thích cho tôi JavaScript async/await thật dễ hiểu."><b>Learn something</b><span>Giải thích rõ ràng</span></button>
+        <button class="card" data-p="Viết cho tôi một website HTML/CSS/JavaScript premium responsive."><b>Build a website</b><span>Code sạch, hiện đại</span></button>
+        <button class="card" data-p="Phân tích ý tưởng này và lập kế hoạch triển khai từng bước."><b>Analyze an idea</b><span>Reasoning có cấu trúc</span></button>
+        <button class="card" data-p="Giúp tôi debug đoạn code sau và chỉ ra lỗi:"><b>Debug code</b><span>Tìm lỗi và sửa lỗi</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="messages" id="messages"></div>
+</section>
+
+<div class="composerWrap">
+<form class="composer" id="form">
+<textarea id="input" rows="1" placeholder="Nhắn gì đó cho NOVA…"></textarea>
+<div class="row">
+  <div class="tools">
+    <select class="sel" id="reason"><option value="low">Think Low</option><option value="high" selected>Think High</option><option value="max">Think Max</option></select>
+    <select class="sel" id="temp"><option value=".3">Focused</option><option value=".7" selected>Balanced</option><option value="1">Creative</option></select>
+  </div>
+  <button class="send" id="send" type="submit">➤</button>
+  <button class="stop" id="stop" type="button">■</button>
+</div>
+</form>
+</div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+/* =========================================================
+   NOVA SINGLE-FILE Z.AI CLIENT
+   The supplied key is intentionally embedded per request.
+   For a public website, move it to a server-side proxy —
+   an API key hard-coded in client-side JS is visible to
+   anyone who views the page source.
+   ========================================================= */
+const ZAI_API_KEY = "ea4db86c17444e108d258947daca7509.Fd0N3DojJ39GVjgK";
+const ZAI_URL = "https://api.z.ai/api/paas/v4/chat/completions";
+const MODEL = "glm-5.3";
+const STORAGE_KEY = "nova_chat_v1";
+
+/* ---------- Firebase (Auth + Realtime Database) ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyDCn8HaXrDvksW56uAQxeooEfiZdVcUO-g",
+  authDomain: "noxai-663ae.firebaseapp.com",
+  databaseURL: "https://noxai-663ae-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "noxai-663ae",
+  storageBucket: "noxai-663ae.firebasestorage.app",
+  messagingSenderId: "236435612991",
+  appId: "1:236435612991:web:a71c94dac98dd33aea5f8a",
+  measurementId: "G-CH90YX6LEK"
+};
+// 125121564255-gc3kvvk33inpfgfn04s25cnd0tp7m1av.apps.googleusercontent.com is the
+// OAuth Web Client ID Firebase already generated for this project — Firebase Auth
+// picks it up automatically from firebaseConfig/authDomain, no need to set it here.
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const rtdb = firebase.database();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+let currentUser = null;
+
+const $ = s => document.querySelector(s);
+const input = $("#input"), send = $("#send"), stopBtn = $("#stop"),
+      messages = $("#messages"), welcome = $("#welcome"), chat = $("#chat"),
+      statusDot = $("#statusDot"), statusText = $("#statusText"), modelStatus = $("#modelStatus");
+let history = [];
+let currentController = null;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- persistence (Firebase when signed in, else localStorage) ---------- */
+function save(){
+  if(currentUser){
+    rtdb.ref("users/"+currentUser.uid+"/history").set(history).catch(()=>toast("Không lưu được lên Firebase"));
+  }else{
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); }catch{}
+  }
+}
+function load(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw){ const parsed = JSON.parse(raw); if(Array.isArray(parsed)) history = parsed.map(m=>({...m, streaming:false})); } }catch{} }
+async function loadFromCloud(){
+  try{
+    const snap = await rtdb.ref("users/"+currentUser.uid+"/history").once("value");
+    const val = snap.exists() ? snap.val() : null;
+    history = Array.isArray(val) ? val.map(m=>({...m, streaming:false})) : [];
+  }catch(e){
+    toast("Không tải được dữ liệu từ Firebase");
+    history = [];
+  }
+}
+function updateAuthUI(user){
+  const signInBtn = $("#googleSignIn"), row = $("#userRow"), note = $("#syncNote");
+  if(user){
+    signInBtn.style.display = "none";
+    row.style.display = "flex";
+    $("#userPhoto").src = user.photoURL || "";
+    $("#userName").textContent = user.displayName || "Người dùng";
+    $("#userEmail").textContent = user.email || "";
+    note.textContent = "Đã đăng nhập — hội thoại đồng bộ qua Firebase.";
+  }else{
+    signInBtn.style.display = "";
+    row.style.display = "none";
+    note.textContent = "Chưa đăng nhập — lưu cục bộ trên máy này.";
+  }
+}
+$("#googleSignIn").addEventListener("click", ()=>{
+  auth.signInWithPopup(googleProvider).catch(err=>toast("Đăng nhập thất bại: "+(err?.message||err)));
+});
+$("#signOutBtn").addEventListener("click", ()=> auth.signOut());
+
+/* ---------- ui helpers ---------- */
+function toast(t){
+  const x=$("#toast"); x.textContent=t; x.classList.add("show");
+  clearTimeout(window.__toast); window.__toast=setTimeout(()=>x.classList.remove("show"),2600);
+}
+function setStatus(state, text){
+  statusDot.className = "dot" + (state!=="good" ? " "+state : "");
+  if(text) statusText.textContent = text;
+  modelStatus.textContent = state==="warn" ? " · Đang xử lý…" : " · Deep reasoning";
+}
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function formatContent(s){
+  let out = escapeHTML(s);
+  out = out.replace(/```([a-zA-Z0-9]*)\n?([\s\S]*?)```/g, (m,lang,code)=>`<pre><code>${code}</code></pre>`);
+  out = out.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  out = out.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+  return out;
+}
+function resize(){ input.style.height="auto"; input.style.height=Math.min(180,input.scrollHeight)+"px"; }
+function toggleStopButton(streaming){
+  send.style.display = streaming ? "none" : "";
+  stopBtn.style.display = streaming ? "" : "none";
+}
+
+/* ---------- render ---------- */
+function render(){
+  messages.innerHTML = history.map((m,i)=>{
+    const isUser = m.role==="user";
+    const hasThink = !isUser && m.reasoning;
+    const isLastAssistant = !isUser && i===history.length-1 && !m.streaming && m.content;
+    const showDots = m.streaming && !m.content && !m.reasoning;
+    return `
+    <div class="msg ${m.role}">
+      <div class="avatar ${m.streaming?'think':''}">${isUser?"YOU":"N"}</div>
+      <div class="bubbleWrap">
+        ${hasThink ? `<button class="thinkToggle" data-t="${i}">🧠 ${m.streaming && !m.content ? "Đang suy nghĩ…" : "Xem quá trình suy nghĩ"}</button><div class="thinkBox ${m.streaming && !m.content ? "open":""}" id="think-${i}">${escapeHTML(m.reasoning)}</div>` : ""}
+        <div class="bubble">${showDots ? '<span class="typingDots"><i>•</i><i>•</i><i>•</i></span>' : formatContent(m.content||"")}${m.streaming && m.content ? '<span class="cursor"></span>' : ""}</div>
+        <div class="msgActions">
+          ${m.content ? `<button data-copy="${i}">⧉ Copy</button>` : ""}
+          ${isLastAssistant ? `<button data-regen="${i}">↻ Làm lại</button>` : ""}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+  welcome.style.display = history.length ? "none" : "grid";
+  requestAnimationFrame(()=>chat.scrollTop = chat.scrollHeight);
+}
+
+messages.addEventListener("click", e=>{
+  const c = e.target.closest("[data-copy]");
+  if(c){ navigator.clipboard?.writeText(history[+c.dataset.copy].content||"").then(()=>toast("Đã copy")); return; }
+  const rg = e.target.closest("[data-regen]");
+  if(rg){ regenerate(+rg.dataset.regen); return; }
+  const tt = e.target.closest("[data-t]");
+  if(tt){ $("#think-"+tt.dataset.t)?.classList.toggle("open"); return; }
+});
+
+/* ---------- streaming request ---------- */
+async function generate(){
+  send.disabled = true; toggleStopButton(true);
+  history.push({role:"assistant", content:"", reasoning:"", streaming:true});
+  const aiIndex = history.length-1;
+  render(); save();
+  setStatus("warn","Đang xử lý…");
+  const controller = new AbortController();
+  currentController = controller;
+
+  try{
+    const body = {
+      model: MODEL,
+      messages: history.slice(0,-1).map(({role,content})=>({role,content})),
+      stream: true,
+      thinking: {type:"enabled"},
+      reasoning_effort: $("#reason").value,
+      temperature: Number($("#temp").value),
+      max_tokens: 8192
+    };
+    const r = await fetch(ZAI_URL,{
+      method:"POST", mode:"cors",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+ZAI_API_KEY },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+
+    if(!r.ok){
+      const raw = await r.text();
+      let data=null; try{ data=JSON.parse(raw); }catch{}
+      const detail = data?.error?.message || data?.message || data?.error || ("HTTP "+r.status);
+      throw new Error(detail);
+    }
+
+    if(!r.body){ throw new Error("Trình duyệt không hỗ trợ streaming response."); }
+
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value,{stream:true});
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for(const line of lines){
+        const t = line.trim();
+        if(!t.startsWith("data:")) continue;
+        const payload = t.slice(5).trim();
+        if(!payload || payload === "[DONE]") continue;
+        let json; try{ json = JSON.parse(payload); }catch{ continue; }
+        const delta = json?.choices?.[0]?.delta;
+        if(!delta) continue;
+        if(delta.reasoning_content){ history[aiIndex].reasoning += delta.reasoning_content; render(); }
+        if(delta.content){ history[aiIndex].content += delta.content; render(); }
+      }
+    }
+
+    if(!history[aiIndex].content && !history[aiIndex].reasoning){
+      throw new Error("API không trả về nội dung.");
+    }
+    history[aiIndex].streaming = false;
+    setStatus("good","Z.ai API ready");
+    render(); save();
+  }catch(err){
+    if(err?.name === "AbortError"){
+      history[aiIndex].content = (history[aiIndex].content||"") + (history[aiIndex].content?"\n\n":"") + "⏹️ Đã dừng.";
+      history[aiIndex].streaming = false;
+      setStatus("good","Z.ai API ready");
+    }else{
+      let msg = err?.message || String(err);
+      if(/Failed to fetch|NetworkError|CORS/i.test(msg)){
+        msg = "Không gọi được Z.ai từ trình duyệt. Có thể API đang chặn CORS. Nếu gặp lỗi này, cần chạy qua proxy/backend; file HTML đơn lẻ không thể tự vượt CORS.";
+      }
+      history[aiIndex].content = "❌ " + msg;
+      history[aiIndex].streaming = false;
+      setStatus("bad","Lỗi kết nối");
+      toast("API request failed");
+    }
+    render(); save();
+  }finally{
+    send.disabled = false; toggleStopButton(false); currentController = null; input.focus();
+  }
+}
+
+function ask(text){
+  text = text.trim(); if(!text || send.disabled) return;
+  history.push({role:"user", content:text});
+  input.value=""; resize(); render(); save();
+  generate();
+}
+function regenerate(i){
+  if(send.disabled) return;
+  if(history[i]?.role !== "assistant") return;
+  history.splice(i,1);
+  render(); save();
+  generate();
+}
+
+/* ---------- wiring ---------- */
+$("#form").addEventListener("submit", e=>{ e.preventDefault(); ask(input.value); });
+input.addEventListener("input", resize);
+input.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); $("#form").requestSubmit(); } });
+document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ input.value=b.dataset.p; resize(); input.focus(); });
+stopBtn.onclick = ()=> currentController?.abort();
+
+function reset(){
+  currentController?.abort();
+  history = [];
+  if(currentUser){
+    rtdb.ref("users/"+currentUser.uid+"/history").remove().catch(()=>{});
+  }else{
+    try{ localStorage.removeItem(STORAGE_KEY); }catch{}
+  }
+  render(); setStatus("good","Z.ai API ready"); input.focus();
+}
+$("#new").onclick = reset; $("#clear").onclick = reset; $("#clearTop").onclick = reset;
+$("#export").onclick = ()=>{
+  const text = history.map(x=>x.role.toUpperCase()+"\n"+x.content).join("\n\n---\n\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"})); a.download="nova-chat.txt"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$("#menu").onclick = ()=> $("#side").classList.toggle("open");
+
+/* subtle parallax on the background layer */
+if(!reduceMotion){
+  document.addEventListener("pointermove", e=>{
+    const x = (e.clientX/innerWidth-.5)*18, y=(e.clientY/innerHeight-.5)*18;
+    $("#bg").style.transform = `translate(${x}px, ${y}px)`;
+  });
+}
+
+auth.onAuthStateChanged(async user=>{
+  currentUser = user;
+  updateAuthUI(user);
+  if(user){ await loadFromCloud(); } else { load(); }
+  render();
+});
+</script>
+</body>
+</html>
