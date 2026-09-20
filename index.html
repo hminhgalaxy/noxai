@@ -2328,6 +2328,30 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
+
+
+/* NoxAI finishing pass: restrained motion, sharper focus, mobile-safe surfaces */
+:root{--motion-fast:160ms;--motion-mid:260ms;--motion-slow:420ms}
+button,.btn,.icon-btn,.quick,.message-bubble,.sidebar,.modal,.thinking-details{
+  transition:transform var(--motion-mid) var(--ease),background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,box-shadow var(--motion-mid) ease,opacity var(--motion-fast) ease;
+}
+button:focus-visible,textarea:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid rgba(163,139,255,.88);outline-offset:3px;
+}
+@media(hover:hover) and (pointer:fine){
+  .btn:hover,.quick:hover,.icon-btn:hover{transform:translateY(-1px)}
+  .message-bubble:hover{border-color:rgba(155,128,255,.24)}
+}
+.message-row{animation:noxMessageEnter .32s var(--ease) both}
+@keyframes noxMessageEnter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.send-btn{position:relative;isolation:isolate;overflow:hidden}
+.send-btn::after{content:"";position:absolute;inset:-45%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.17),transparent 62%);opacity:0;transform:scale(.5);transition:opacity .25s,transform .35s;z-index:-1;pointer-events:none}
+.send-btn:active::after{opacity:1;transform:scale(1)}
+.thinking-orb{box-shadow:0 0 0 0 rgba(132,97,255,.18);animation:noxOrbPulse 2.6s ease-in-out infinite}
+@keyframes noxOrbPulse{50%{box-shadow:0 0 0 5px rgba(132,97,255,.045)}}
+@media(max-width:600px){.message-row{animation-duration:.2s}.send-btn:active{transform:scale(.97)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
 </head>
 
@@ -2938,7 +2962,7 @@ TURNSTILE_SITE_KEY:
   MODELS: {
     pro: {
       name: "NoxAI Pro",
-      providerModel: "anthropic/claude-fable-5-1",
+      providerModel: "anthropic/claude-opus-5",
       daily: 5,
       className: "model-pro"
     },
@@ -4676,63 +4700,98 @@ function extractAIText(response){
 }
 
 function extractStreamChunk(chunk){
-  if(typeof chunk==="string") return chunk;
-  return chunk?.text ?? chunk?.delta?.text ?? chunk?.choices?.[0]?.delta?.content ?? chunk?.message?.content ?? "";
+  if(typeof chunk === "string") return chunk;
+  if(!chunk || typeof chunk !== "object") return "";
+  // Puter streaming chunks use { type: "text", text: "..." }.
+  if(chunk.type === "error"){
+    throw new Error(chunk.message || "Puter stream error");
+  }
+  if(chunk.type === "text" && typeof chunk.text === "string") return chunk.text;
+  const delta = chunk?.choices?.[0]?.delta?.content;
+  if(typeof delta === "string") return delta;
+  if(Array.isArray(delta)) return delta.map(x=>x?.text || "").join("");
+  const value = chunk?.text ?? chunk?.delta?.text ?? chunk?.message?.content ?? chunk?.content;
+  if(typeof value === "string") return value;
+  if(Array.isArray(value)) return value.map(x=>typeof x === "string" ? x : (x?.text || "")).join("");
+  return "";
 }
 
 /*
- * Puter auth is browser/session scoped. A public static HTML file cannot
- * safely share one person's private Puter session with every visitor.
- * For truly shared billing/auth, route requests through a secured backend;
- * never ship a shared account token in this client file.
+ * Puter auth/billing belongs to the visitor's Puter session. The app must
+ * never expose a shared private token in this public HTML.
  */
-async function callPuterAI(prompt,modelName,onChunk){
-  if(!window.puter || !puter.ai || !puter.ai.chat){
-    throw new Error("NoxAI AI engine chưa sẵn sàng. Hãy tải lại trang.");
+async function callPuterAI(prompt, modelName, onChunk){
+  if(!window.puter?.ai?.chat){
+    throw new Error("Không tải được Puter.js. Kiểm tra mạng/CDN rồi tải lại trang.");
   }
-  // Request streaming when supported; fall back to the standard response.
-  let response;
-  try { response=await puter.ai.chat(prompt,{model:modelName,stream:true}); }
-  catch(streamError){ response=await puter.ai.chat(prompt,{model:modelName}); }
 
-  if(response && typeof response[Symbol.asyncIterator]==="function"){
-    let full="";
-    for await (const chunk of response){
-      if(!state.isGenerating) break;
-      const piece=extractStreamChunk(chunk);
-      if(piece){ full+=piece; onChunk?.(full); }
+  // First use the selected model. Only try a known fallback when the provider
+  // explicitly reports that the model is unavailable/unknown.
+  const candidates=[modelName, "openai/gpt-5.6-luna", "google/gemini-3.1-flash-lite"]
+    .filter((v,i,a)=>v && a.indexOf(v)===i);
+  let lastError=null;
+
+  for(let modelIndex=0; modelIndex<candidates.length; modelIndex++){
+    const currentModel=candidates[modelIndex];
+    let response;
+    try{
+      response=await puter.ai.chat(prompt,{
+        model:currentModel,
+        stream:true,
+        normalize:true
+      });
+    }catch(streamSetupError){
+      // Compatibility fallback for SDK/model combinations without streaming.
+      try{
+        response=await puter.ai.chat(prompt,{
+          model:currentModel,
+          normalize:true
+        });
+      }catch(error){
+        lastError=error;
+        const msg=String(error?.message || error).toLowerCase();
+        const modelUnavailable=/model|not found|unknown|unsupported|does not exist|invalid model/.test(msg);
+        if(modelUnavailable && modelIndex<candidates.length-1) continue;
+        throw error;
+      }
     }
-    if(full.trim()) return full.trim();
-    throw new Error("AI không trả về nội dung.");
+
+    if(response && typeof response[Symbol.asyncIterator]==="function"){
+      let full="";
+      for await(const chunk of response){
+        if(!state.isGenerating) break;
+        const piece=extractStreamChunk(chunk);
+        if(piece){
+          full+=piece;
+          onChunk?.(full);
+        }
+      }
+      if(full.trim()) return full.trim();
+      if(!state.isGenerating) return "";
+      throw new Error("Puter đã kết thúc luồng nhưng không gửi nội dung. Hãy thử lại hoặc đổi model.");
+    }
+
+    const text=extractAIText(response);
+    if(text.trim()){
+      onChunk?.(text.trim());
+      return text.trim();
+    }
+    throw new Error("Puter trả về phản hồi rỗng. Có thể phiên đăng nhập Puter chưa sẵn sàng.");
   }
-  const text=extractAIText(response);
-  if(!text.trim()) throw new Error("AI không trả về nội dung.");
-  onChunk?.(text.trim());
-  return text.trim();
+  throw lastError || new Error("Không tìm thấy model AI khả dụng.");
 }
 
-
 function aiFriendlyError(error){
-
-  const raw=String(
-    error?.message ||
-    error ||
-    ""
-  ).toLowerCase();
-
-  if(!navigator.onLine){
-    return "Bạn đang offline. Hãy kiểm tra kết nối mạng rồi thử lại.";
-  }
-
-  if(raw.includes("429") || raw.includes("rate")){
-    return "AI đang bị giới hạn tạm thời. Hãy thử lại sau ít phút.";
-  }
-
-  if(raw.includes("401") || raw.includes("403")){
-    return "AI engine từ chối yêu cầu. Hãy tải lại trang và thử lại.";
-  }
-
-  return "Nox AI chưa thể trả lời lúc này. Hãy thử lại.";
+  const raw=String(error?.message || error || "").trim();
+  const lower=raw.toLowerCase();
+  if(!navigator.onLine) return "Bạn đang offline. Kiểm tra kết nối mạng rồi gửi lại.";
+  if(/429|rate.?limit|too many requests/.test(lower)) return "Puter đang giới hạn lượt gọi. Vui lòng đợi một chút rồi thử lại.";
+  if(/401|403|unauthorized|not authenticated|sign.?in|login/.test(lower)) return "Puter yêu cầu xác thực. Hãy đăng nhập Puter trong cửa sổ hiện ra rồi gửi lại.";
+  if(/model.*(not found|unavailable|unsupported)|unknown model|invalid model/.test(lower)) return "Model đang chọn hiện không khả dụng trên Puter. Hãy đổi model khác trong phần cài đặt.";
+  if(/failed to fetch|networkerror|load failed/.test(lower)) return "Không kết nối được máy chủ AI. Kiểm tra mạng, VPN hoặc thử lại sau.";
+  if(/quota|credit|payment|billing/.test(lower)) return "Tài khoản Puter hiện không đủ hạn mức/credit cho yêu cầu này.";
+  // Show useful provider detail rather than hiding every failure behind a generic retry.
+  return raw ? `AI chưa trả lời: ${raw.slice(0,260)}` : "AI chưa trả về nội dung. Hãy thử lại hoặc đổi model.";
 }
 
 async function requestAI(userMessageId,replaceMessageId=null){
@@ -6459,4 +6518,4 @@ export default async function handler(req,res){
 =============================================================
 -->
 </body>
-           </html>
+               </html>
