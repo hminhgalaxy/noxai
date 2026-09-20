@@ -2024,6 +2024,152 @@ textarea:focus-visible{
 
 
 
+
+/* =========================================================
+   MOBILE HOTFIX — SVG ICON SIZING, FONT AUTOSCALE & CLARITY
+   Prevents intrinsic 300x150 SVGs from expanding controls.
+========================================================= */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: 16px;
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Icon SVGs without explicit dimensions were rendering at the
+   browser's 300x150 intrinsic size (notably the paperclip). */
+button svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  max-width: 100%;
+  max-height: 100%;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+button svg[width="22"] { width: 22px; height: 22px; }
+button svg[width="19"] { width: 19px; height: 19px; }
+button svg[width="18"] { width: 18px; height: 18px; }
+button svg[width="17"] { width: 17px; height: 17px; }
+button svg[width="16"] { width: 16px; height: 16px; }
+button svg[width="15"] { width: 15px; height: 15px; }
+
+button, .tool-btn, .send-btn, .message-action {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Keep the chat canvas crisp; translucent overlays must not blur
+   the entire interface on mobile browsers. */
+#welcome,
+.sidebar,
+.modal-layer,
+.drawer-backdrop,
+.model-selector {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Never let a third-party/injected graphic or avatar overflow its
+   containing control or viewport. */
+img, canvas, video {
+  max-width: 100%;
+}
+
+#app {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+main, .chat-main, .messages-scroll, .messages {
+  min-width: 0;
+  min-height: 0;
+}
+
+.messages-scroll {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.message-text {
+  font-size: 15px;
+  line-height: 1.62;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.composer-area {
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+.composer {
+  width: 100%;
+  max-width: var(--composer-max);
+  overflow: visible;
+}
+
+.composer-top, .composer-bottom {
+  min-width: 0;
+}
+
+#messageInput {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 16px; /* avoids Android focus zoom */
+  line-height: 1.45;
+  max-height: 140px;
+}
+
+.tool-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+
+.send-btn {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 600px) {
+  .message-text { font-size: 14px; line-height: 1.58; }
+  .message-bubble { padding: 12px 13px; }
+  .message-row { gap: 7px; }
+  .composer-area { padding-top: 7px; }
+  .composer-top { padding: 7px 9px 3px; }
+  .composer-bottom { padding: 2px 8px 8px; }
+  .tool-btn { width: 34px; height: 34px; }
+  .send-btn { width: 44px; height: 44px; }
+  .empty-state { padding: 24px 8px; }
+  .empty-card { padding: 22px 15px; }
+  .empty-title { font-size: 24px; }
+  .quick { font-size: 12px; }
+}
+
+@media (max-width: 360px) {
+  .message-text { font-size: 13px; }
+  .composer-tools { gap: 0; }
+  .tool-btn { width: 31px; height: 31px; }
+  .send-btn { width: 42px; height: 42px; }
+}
+
 </style>
 </head>
 
