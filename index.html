@@ -2395,6 +2395,51 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus
 }
 
 </style>
+
+<style id="noxai-refined-motion">
+/* Refined, lightweight motion system: avoids blur-heavy repainting on phones. */
+:root { --nox-ease:cubic-bezier(.2,.75,.25,1); }
+button, a, input, textarea, .model-option, .conversation-item {
+  transition: transform .18s var(--nox-ease), border-color .2s ease,
+              background-color .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+button:active { transform: translateY(1px) scale(.975); }
+:where(button,a,input,textarea,[tabindex]):focus-visible {
+  outline:2px solid rgba(157,119,255,.88); outline-offset:3px;
+}
+.message-row { animation:noxMessageIn .32s var(--nox-ease) both; }
+.message-row.user { animation-duration:.24s; }
+@keyframes noxMessageIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.thinking-orb { animation:noxOrbPulse 1.8s ease-in-out infinite; }
+@keyframes noxOrbPulse {
+  0%,100% { transform:scale(.92); opacity:.72; }
+  50% { transform:scale(1.08); opacity:1; }
+}
+.send-btn, #sendBtn { will-change:transform; }
+@media (hover:hover) and (pointer:fine) {
+  button:hover { filter:brightness(1.08); }
+  .conversation-item:hover, .model-option:hover { transform:translateX(2px); }
+}
+@media (max-width:700px) {
+  /* Keep the chat canvas viewport-bound and prevent oversized side panels. */
+  .sidebar, #sidebar, .history-panel, .conversation-sidebar {
+    max-width:min(86vw,320px);
+    width:min(86vw,320px);
+  }
+  .message-row, .message-bubble, .assistant-message, .user-message {
+    min-width:0; max-width:100%; overflow-wrap:anywhere;
+  }
+  .message-text pre { max-width:100%; overflow-x:auto; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important;
+    transition-duration:.01ms!important; scroll-behavior:auto!important; }
+}
+</style>
+
 </head>
 
 <body>
@@ -4763,86 +4808,79 @@ function extractStreamChunk(chunk){
  * never expose a shared private token in this public HTML.
  */
 async function callPuterAI(prompt, modelName, onChunk){
-  if(!window.puter?.ai?.chat){
-    throw new Error("Không tải được Puter.js. Kiểm tra mạng/CDN rồi tải lại trang.");
+  const ai = window.puter?.ai;
+  if(typeof ai?.chat !== "function"){
+    throw new Error("Puter.js chưa tải xong. Hãy kiểm tra mạng rồi tải lại trang.");
   }
 
-  // IDs hiện có trong danh mục/tài liệu Puter; tránh các ID giả hoặc chưa xác thực.
-  const candidates=[...new Set([
+  // Check the live catalog when available. Never invent model IDs or blindly
+  // retry a failed request (auth, quota and network errors must stay visible).
+  let available = [];
+  if(typeof ai.listModels === "function"){
+    try{
+      const catalog = await ai.listModels();
+      if(Array.isArray(catalog)){
+        available = catalog.map(item=>typeof item==="string" ? item : item?.id)
+          .filter(id=>typeof id==="string" && id.trim());
+      }
+    }catch(_catalogError){
+      // Catalog endpoint may be temporarily unavailable; try the configured ID.
+    }
+  }
+
+  const preferred = [
     modelName,
     "gpt-5.6-luna",
     "gemini-3.1-flash-lite",
-    "claude-opus-4-8"
-  ].filter(Boolean))];
-  let lastError=null;
+    "claude-opus-4-8",
+    "gpt-5-nano"
+  ].filter(Boolean);
 
-  for(let modelIndex=0; modelIndex<candidates.length; modelIndex++){
-    const currentModel=candidates[modelIndex];
-    if(!state.isGenerating) return "";
-
-    // Ưu tiên streaming để người dùng thấy nội dung dần.
-    let streamed="";
-    let streamError=null;
-    try{
-      const response=await puter.ai.chat(prompt,{
-        model:currentModel,
-        stream:true,
-        normalize:true
-      });
-
-      if(response && typeof response[Symbol.asyncIterator]==="function"){
-        for await(const chunk of response){
-          if(!state.isGenerating) return "";
-          const piece=extractStreamChunk(chunk);
-          if(piece){
-            streamed+=piece;
-            onChunk?.(streamed);
-          }
-        }
-      }else{
-        streamed=extractAIText(response);
-        if(streamed) onChunk?.(streamed);
-      }
-
-      if(streamed.trim()) return streamed.trim();
-      if(!state.isGenerating) return "";
-      streamError=new Error("Luồng streaming kết thúc nhưng không có nội dung.");
-    }catch(error){
-      if(!state.isGenerating) return "";
-      streamError=error;
-    }
-
-    // Nếu stream lỗi/không có chunk, thử non-stream MỘT lần với cùng model.
-    // Không lặp lại khi đã nhận được một phần nội dung để tránh câu trả lời trùng.
-    if(!streamed.trim() && state.isGenerating){
-      try{
-        updateThinkingProgress("Đang thử chế độ phản hồi tương thích…","");
-        const response=await puter.ai.chat(prompt,{
-          model:currentModel,
-          normalize:true
-        });
-        if(!state.isGenerating) return "";
-        const text=extractAIText(response).trim();
-        if(text){
-          onChunk?.(text);
-          return text;
-        }
-        lastError=new Error("Puter trả về phản hồi rỗng.");
-      }catch(error){
-        lastError=error;
-      }
-    }else if(streamed.trim()){
-      // Có nội dung nhưng stream kết thúc bất thường: giữ phần đã nhận được.
-      return streamed.trim();
-    }
-
-    const msg=String(lastError?.message || streamError?.message || "").toLowerCase();
-    const modelUnavailable=/model|not found|unknown|unsupported|does not exist|invalid model/.test(msg);
-    if(modelUnavailable && modelIndex<candidates.length-1) continue;
-
-    throw lastError || streamError || new Error("Puter không trả về nội dung.");
+  let chosen = modelName;
+  if(available.length){
+    const availableSet = new Set(available.map(id=>id.toLowerCase()));
+    chosen = preferred.find(id=>availableSet.has(id.toLowerCase())) ||
+             available[0];
   }
-  throw lastError || new Error("Không tìm thấy model Puter khả dụng.");
+  if(!chosen) chosen = "gpt-5-nano";
+
+  updateThinkingProgress(`Đang kết nối model ${chosen}…`, "");
+
+  let response;
+  try{
+    response = await ai.chat(prompt, {
+      model: chosen,
+      stream: true,
+      normalize: true
+    });
+  }catch(error){
+    throw error;
+  }
+
+  let streamed = "";
+  if(response && typeof response[Symbol.asyncIterator] === "function"){
+    for await(const chunk of response){
+      if(!state.isGenerating) return "";
+      const piece = extractStreamChunk(chunk);
+      if(piece){
+        streamed += piece;
+        onChunk?.(streamed);
+      }
+    }
+    if(streamed.trim()) return streamed.trim();
+
+    // Empty stream is an explicit provider failure. Do not fire a duplicate
+    // billable request silently; surface it so the UI can explain/retry.
+    throw new Error("Puter đã kết thúc luồng nhưng không gửi nội dung.");
+  }
+
+  // Some SDK builds may return a normal response despite stream:true.
+  const text = extractAIText(response).trim();
+  if(text){
+    onChunk?.(text);
+    return text;
+  }
+  throw new Error("Puter trả về phản hồi rỗng. Hãy thử lại hoặc đổi model.");
 }
 
 function aiFriendlyError(error){
@@ -6582,4 +6620,4 @@ export default async function handler(req,res){
 =============================================================
 -->
 </body>
-                                               </html>
+     </html>
