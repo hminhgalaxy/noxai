@@ -1266,6 +1266,26 @@ textarea:focus-visible{
   color:#ff9bb0;
 }
 
+/* Expandable, mobile-safe generation progress */
+.thinking-progress{width:100%;max-width:900px;margin:8px auto 22px;padding:0 8px;animation:messageIn .25s ease both;}
+.thinking-details{border:1px solid rgba(145,112,255,.24);border-radius:14px;background:rgba(18,17,38,.72);overflow:hidden;}
+.thinking-details summary{display:flex;align-items:center;gap:9px;min-height:48px;padding:10px 13px;cursor:pointer;list-style:none;flex-wrap:wrap;}
+.thinking-details summary::-webkit-details-marker{display:none}
+.thinking-orb{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:9px;background:rgba(132,97,255,.17);color:#b8a4ff;animation:softGlow 2.2s ease-in-out infinite;}
+.thinking-title{font-weight:700;font-size:13px;color:#e6e1ff}
+.thinking-status{font-size:12px;color:#a6a1c4;overflow-wrap:anywhere;}
+.thinking-chevron{margin-left:auto;color:#9b8ce0;transition:transform .2s}
+.thinking-details[open] .thinking-chevron{transform:rotate(180deg)}
+.thinking-body{border-top:1px solid rgba(145,112,255,.13);padding:12px 14px;max-height:42vh;overflow:auto;}
+.thinking-note{font-size:12px;color:#9692b0;margin:0 0 10px;}
+.thinking-preview{font-size:14px;line-height:1.6;white-space:normal;}
+.thinking-wait{display:flex;align-items:center;gap:6px;color:#aaa4c8;font-size:13px;}
+.thinking-wait i{width:5px;height:5px;border-radius:50%;background:#a78bfa;animation:thinkDot 1s infinite alternate;}
+.thinking-wait i:nth-child(2){animation-delay:.15s}.thinking-wait i:nth-child(3){animation-delay:.3s}
+@keyframes thinkDot{to{opacity:.25;transform:translateY(-3px)}}
+@keyframes softGlow{50%{box-shadow:0 0 12px rgba(129,93,255,.18)}}
+@media(max-width:600px){.thinking-progress{padding:0 2px}.thinking-details summary{gap:7px;padding:9px 10px}.thinking-status{flex-basis:100%;padding-left:35px}.thinking-body{max-height:34vh}}
+
 /* =========================================================
    THINKING
 ========================================================= */
@@ -2957,6 +2977,8 @@ const state = {
 
   isGenerating:false,
   generationId:0,
+  streamingText:"",
+  generationStage:"Đang chuẩn bị yêu cầu…",
 
 
   sidebarOpen:false,
@@ -4309,22 +4331,48 @@ function renderMessage(message){
 }
 
 function createThinking(){
-
   const row=document.createElement("div");
-  row.className="thinking";
+  row.className="thinking-progress";
   row.id="thinkingRow";
-
-  row.innerHTML=`
-    <div class="thinking-avatar">
-      <svg width="19"><use href="#i-spark"></use></svg>
-    </div>
-    <div class="dots">
-      <i></i><i></i><i></i>
-    </div>
-  `;
-
+  const details=document.createElement("details");
+  details.className="thinking-details";
+  details.open=true;
+  const summary=document.createElement("summary");
+  summary.innerHTML=`<span class="thinking-orb"><svg width="17" height="17"><use href="#i-spark"></use></svg></span><span class="thinking-title">${state.isGenerating ? "NoxAI đang xử lý" : "Tiến trình"}</span><span class="thinking-status">${escapeHTML(state.generationStage||"Đang chuẩn bị…")}</span><span class="thinking-chevron">⌄</span>`;
+  const body=document.createElement("div");
+  body.className="thinking-body";
+  const note=document.createElement("p");
+  note.className="thinking-note";
+  note.textContent="Đây là trạng thái xử lý và bản nháp đang tạo, không phải nhật ký suy luận nội bộ.";
+  body.append(note);
+  if(state.streamingText){
+    const preview=document.createElement("div");
+    preview.className="thinking-preview message-text";
+    renderMarkdownInto(preview,state.streamingText);
+    body.append(preview);
+  } else {
+    const wait=document.createElement("div");
+    wait.className="thinking-wait";
+    wait.innerHTML='<i></i><i></i><i></i><span>Đang tạo câu trả lời…</span>';
+    body.append(wait);
+  }
+  details.append(summary,body);
+  row.append(details);
   return row;
 }
+
+function updateThinkingProgress(stage, text){
+  state.generationStage=stage||state.generationStage;
+  if(typeof text==="string") state.streamingText=text;
+  const old=document.getElementById("thinkingRow");
+  if(old){
+    const wasOpen=old.querySelector("details")?.open;
+    const fresh=createThinking();
+    if(wasOpen===false) fresh.querySelector("details").open=false;
+    old.replaceWith(fresh);
+  }
+}
+
 
 
 /* =========================================================
@@ -4627,34 +4675,42 @@ function extractAIText(response){
   return "";
 }
 
-async function callPuterAI(prompt,modelName){
+function extractStreamChunk(chunk){
+  if(typeof chunk==="string") return chunk;
+  return chunk?.text ?? chunk?.delta?.text ?? chunk?.choices?.[0]?.delta?.content ?? chunk?.message?.content ?? "";
+}
 
+/*
+ * Puter auth is browser/session scoped. A public static HTML file cannot
+ * safely share one person's private Puter session with every visitor.
+ * For truly shared billing/auth, route requests through a secured backend;
+ * never ship a shared account token in this client file.
+ */
+async function callPuterAI(prompt,modelName,onChunk){
   if(!window.puter || !puter.ai || !puter.ai.chat){
-    throw new Error(
-      "NoxAI AI engine chưa sẵn sàng. Hãy tải lại trang."
-    );
+    throw new Error("NoxAI AI engine chưa sẵn sàng. Hãy tải lại trang.");
   }
+  // Request streaming when supported; fall back to the standard response.
+  let response;
+  try { response=await puter.ai.chat(prompt,{model:modelName,stream:true}); }
+  catch(streamError){ response=await puter.ai.chat(prompt,{model:modelName}); }
 
-  /*
-    Exact Puter model API requested by the user.
-  */
-  const response=await puter.ai.chat(
-    prompt,
-    {
-      model:modelName
+  if(response && typeof response[Symbol.asyncIterator]==="function"){
+    let full="";
+    for await (const chunk of response){
+      if(!state.isGenerating) break;
+      const piece=extractStreamChunk(chunk);
+      if(piece){ full+=piece; onChunk?.(full); }
     }
-  );
-
-  const text=extractAIText(response);
-
-  if(!text.trim()){
-    throw new Error(
-      "AI không trả về nội dung."
-    );
+    if(full.trim()) return full.trim();
+    throw new Error("AI không trả về nội dung.");
   }
-
+  const text=extractAIText(response);
+  if(!text.trim()) throw new Error("AI không trả về nội dung.");
+  onChunk?.(text.trim());
   return text.trim();
 }
+
 
 function aiFriendlyError(error){
 
@@ -4674,10 +4730,6 @@ function aiFriendlyError(error){
 
   if(raw.includes("401") || raw.includes("403")){
     return "AI engine từ chối yêu cầu. Hãy tải lại trang và thử lại.";
-  }
-
-  if(raw.includes("timeout")){
-    return "Nox AI phản hồi quá lâu. Hãy thử lại.";
   }
 
   return "Nox AI chưa thể trả lời lúc này. Hãy thử lại.";
@@ -4716,6 +4768,9 @@ async function requestAI(userMessageId,replaceMessageId=null){
   }
 
   state.isGenerating=true;
+  updateSendButton();
+  state.streamingText="";
+  state.generationStage="Đang phân tích yêu cầu…";
   const generationId=++state.generationId;
 
   renderMessages();
@@ -4725,26 +4780,25 @@ async function requestAI(userMessageId,replaceMessageId=null){
 
     const prompt=buildAIPrompt();
 
-    /*
-      60-second safety timeout.
-      The request cannot necessarily be physically cancelled
-      by Puter, so a generation id prevents late results from
-      corrupting the current conversation.
-    */
-    const result=await Promise.race([
-
-      callPuterAI(
-        prompt,
-        model.providerModel
-      ),
-
-      new Promise((_,reject)=>{
+    updateThinkingProgress("Đang gửi yêu cầu đến AI…","");
+    const result=await callPuterAI(prompt,model.providerModel,(partial)=>{
+      if(generationId!==state.generationId) return;
+      state.generationStage="Đang soạn câu trả lời…";
+      state.streamingText=partial;
+      // Throttle DOM refresh while tokens arrive.
+      if(!state._streamRenderPending){
+        state._streamRenderPending=true;
         setTimeout(()=>{
-          reject(new Error("timeout"));
-        },60000);
-      })
-
-    ]);
+          state._streamRenderPending=false;
+          if(generationId===state.generationId && state.isGenerating){
+            const scrollTop=DOM.messagesScroll.scrollTop;
+            const nearBottom=DOM.messagesScroll.scrollHeight-DOM.messagesScroll.clientHeight-scrollTop<180;
+            renderMessages();
+            if(nearBottom) requestAnimationFrame(scrollToBottom);
+          }
+        },180);
+      }
+    });
 
     if(generationId!==state.generationId){
       return;
@@ -4795,6 +4849,7 @@ async function requestAI(userMessageId,replaceMessageId=null){
       await saveMessage(aiMessage);
     }
 
+    state.streamingText="";
     updateConversationFromMessages();
 
   }catch(error){
@@ -4842,6 +4897,9 @@ async function requestAI(userMessageId,replaceMessageId=null){
 
     if(generationId===state.generationId){
       state.isGenerating=false;
+      updateSendButton();
+      state.streamingText="";
+      state.generationStage="Đã hoàn tất";
       renderMessages();
       requestAnimationFrame(scrollToBottom);
       updateQuotaUI();
@@ -4939,6 +4997,22 @@ function buildUserContent(text){
   ].join("\n");
 }
 
+function updateSendButton(){
+  if(!DOM.sendBtn) return;
+  const icon=document.getElementById("sendIcon");
+  if(state.isGenerating){
+    DOM.sendBtn.classList.add("stop");
+    DOM.sendBtn.setAttribute("aria-label","Ngắt AI");
+    DOM.sendBtn.title="Ngắt phản hồi AI";
+    if(icon) icon.setAttribute("href","#i-stop");
+  }else{
+    DOM.sendBtn.classList.remove("stop");
+    DOM.sendBtn.setAttribute("aria-label","Gửi");
+    DOM.sendBtn.title="Gửi tin nhắn";
+    if(icon) icon.setAttribute("href","#i-send");
+  }
+}
+
 function stopGeneration(){
 
   if(!state.isGenerating){
@@ -4947,6 +5021,9 @@ function stopGeneration(){
 
   state.generationId++;
   state.isGenerating=false;
+  updateSendButton();
+  state.streamingText="";
+  state.generationStage="Đã dừng theo yêu cầu";
 
   renderMessages();
 
