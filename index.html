@@ -2352,6 +2352,48 @@ button:focus-visible,textarea:focus-visible,input:focus-visible,[tabindex]:focus
 @keyframes noxOrbPulse{50%{box-shadow:0 0 0 5px rgba(132,97,255,.045)}}
 @media(max-width:600px){.message-row{animation-duration:.2s}.send-btn:active{transform:scale(.97)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* NoxAI polish pass — restrained motion, crisp mobile layout */
+:root{--ease-out-cubic:cubic-bezier(.22,1,.36,1)}
+button,.icon-btn,.model-card,.conversation-item,.prompt-chip{
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .22s var(--ease-out-cubic),border-color .22s ease,
+             background-color .22s ease,box-shadow .22s ease,opacity .22s ease;
+}
+button:active,.icon-btn:active{transform:scale(.96)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid rgba(151,126,255,.9);outline-offset:3px
+}
+.message-row{animation:noxMessageIn .36s var(--ease-out-cubic) both}
+@keyframes noxMessageIn{
+  from{opacity:0;transform:translateY(9px) scale(.992)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.code-wrap{border:1px solid rgba(153,130,255,.24);border-radius:14px;overflow:hidden;
+  box-shadow:0 8px 28px rgba(0,0,0,.16)}
+.code-head{background:rgba(125,101,255,.10);backdrop-filter:none}
+#cursorGlow{width:170px;height:170px;opacity:0}
+.click-ripple{width:8px;height:8px;box-shadow:0 0 7px rgba(131,103,255,.3)}
+@keyframes ripple{to{width:70px;height:70px;margin-left:-31px;margin-top:-31px;opacity:0}}
+#sendBtn{transition:transform .2s ease,box-shadow .25s ease,background .25s ease}
+#sendBtn:hover{box-shadow:0 0 24px rgba(132,103,255,.24)}
+.thinking-orb{animation:noxOrbPulse 2.4s ease-in-out infinite}
+@keyframes noxOrbPulse{50%{filter:brightness(1.25);transform:scale(1.07)}}
+@media(max-width:640px){
+  html{font-size:16px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{overflow-x:hidden}
+  .sidebar,.history-panel,.conversation-sidebar{max-width:min(86vw,320px);width:min(86vw,320px)}
+  .message-row,.message-content,.message-bubble,.assistant-message{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  pre,code{max-width:100%;white-space:pre;overflow-x:auto}
+  #cursorGlow{display:none!important}
+  .click-ripple{display:none!important}
+  .message-row{animation-duration:.24s}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
 </style>
 </head>
 
@@ -2962,21 +3004,21 @@ TURNSTILE_SITE_KEY:
   MODELS: {
     pro: {
       name: "NoxAI Pro",
-      providerModel: "anthropic/claude-opus-5",
+      providerModel: "claude-opus-4-8",
       daily: 5,
       className: "model-pro"
     },
 
     rt: {
       name: "NoxAI RT",
-      providerModel: "openai/gpt-6-astra",
+      providerModel: "gpt-5.6-luna",
       daily: 20,
       className: "model-rt"
     },
 
     sm: {
       name: "NoxAI SM",
-      providerModel: "openai/gpt-5.6-sol",
+      providerModel: "gemini-3.1-flash-lite",
       daily: 50,
       className: "model-sm"
     }
@@ -4725,60 +4767,82 @@ async function callPuterAI(prompt, modelName, onChunk){
     throw new Error("Không tải được Puter.js. Kiểm tra mạng/CDN rồi tải lại trang.");
   }
 
-  // First use the selected model. Only try a known fallback when the provider
-  // explicitly reports that the model is unavailable/unknown.
-  const candidates=[modelName, "openai/gpt-5.6-luna", "google/gemini-3.1-flash-lite"]
-    .filter((v,i,a)=>v && a.indexOf(v)===i);
+  // IDs hiện có trong danh mục/tài liệu Puter; tránh các ID giả hoặc chưa xác thực.
+  const candidates=[...new Set([
+    modelName,
+    "gpt-5.6-luna",
+    "gemini-3.1-flash-lite",
+    "claude-opus-4-8"
+  ].filter(Boolean))];
   let lastError=null;
 
   for(let modelIndex=0; modelIndex<candidates.length; modelIndex++){
     const currentModel=candidates[modelIndex];
-    let response;
+    if(!state.isGenerating) return "";
+
+    // Ưu tiên streaming để người dùng thấy nội dung dần.
+    let streamed="";
+    let streamError=null;
     try{
-      response=await puter.ai.chat(prompt,{
+      const response=await puter.ai.chat(prompt,{
         model:currentModel,
         stream:true,
         normalize:true
       });
-    }catch(streamSetupError){
-      // Compatibility fallback for SDK/model combinations without streaming.
+
+      if(response && typeof response[Symbol.asyncIterator]==="function"){
+        for await(const chunk of response){
+          if(!state.isGenerating) return "";
+          const piece=extractStreamChunk(chunk);
+          if(piece){
+            streamed+=piece;
+            onChunk?.(streamed);
+          }
+        }
+      }else{
+        streamed=extractAIText(response);
+        if(streamed) onChunk?.(streamed);
+      }
+
+      if(streamed.trim()) return streamed.trim();
+      if(!state.isGenerating) return "";
+      streamError=new Error("Luồng streaming kết thúc nhưng không có nội dung.");
+    }catch(error){
+      if(!state.isGenerating) return "";
+      streamError=error;
+    }
+
+    // Nếu stream lỗi/không có chunk, thử non-stream MỘT lần với cùng model.
+    // Không lặp lại khi đã nhận được một phần nội dung để tránh câu trả lời trùng.
+    if(!streamed.trim() && state.isGenerating){
       try{
-        response=await puter.ai.chat(prompt,{
+        updateThinkingProgress("Đang thử chế độ phản hồi tương thích…","");
+        const response=await puter.ai.chat(prompt,{
           model:currentModel,
           normalize:true
         });
+        if(!state.isGenerating) return "";
+        const text=extractAIText(response).trim();
+        if(text){
+          onChunk?.(text);
+          return text;
+        }
+        lastError=new Error("Puter trả về phản hồi rỗng.");
       }catch(error){
         lastError=error;
-        const msg=String(error?.message || error).toLowerCase();
-        const modelUnavailable=/model|not found|unknown|unsupported|does not exist|invalid model/.test(msg);
-        if(modelUnavailable && modelIndex<candidates.length-1) continue;
-        throw error;
       }
+    }else if(streamed.trim()){
+      // Có nội dung nhưng stream kết thúc bất thường: giữ phần đã nhận được.
+      return streamed.trim();
     }
 
-    if(response && typeof response[Symbol.asyncIterator]==="function"){
-      let full="";
-      for await(const chunk of response){
-        if(!state.isGenerating) break;
-        const piece=extractStreamChunk(chunk);
-        if(piece){
-          full+=piece;
-          onChunk?.(full);
-        }
-      }
-      if(full.trim()) return full.trim();
-      if(!state.isGenerating) return "";
-      throw new Error("Puter đã kết thúc luồng nhưng không gửi nội dung. Hãy thử lại hoặc đổi model.");
-    }
+    const msg=String(lastError?.message || streamError?.message || "").toLowerCase();
+    const modelUnavailable=/model|not found|unknown|unsupported|does not exist|invalid model/.test(msg);
+    if(modelUnavailable && modelIndex<candidates.length-1) continue;
 
-    const text=extractAIText(response);
-    if(text.trim()){
-      onChunk?.(text.trim());
-      return text.trim();
-    }
-    throw new Error("Puter trả về phản hồi rỗng. Có thể phiên đăng nhập Puter chưa sẵn sàng.");
+    throw lastError || streamError || new Error("Puter không trả về nội dung.");
   }
-  throw lastError || new Error("Không tìm thấy model AI khả dụng.");
+  throw lastError || new Error("Không tìm thấy model Puter khả dụng.");
 }
 
 function aiFriendlyError(error){
@@ -6518,4 +6582,4 @@ export default async function handler(req,res){
 =============================================================
 -->
 </body>
-               </html>
+                                               </html>
