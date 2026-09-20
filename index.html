@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070912">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="dark">
 <meta name="description" content="NoxAI 1.0 — AI assistant">
 <title>NoxAI 1.0</title>
 
@@ -14,7 +14,7 @@
 <script>
 (function(){
   try{
-    const t=localStorage.getItem("noxai_theme")||"dark";
+    const t="dark";
     document.documentElement.dataset.theme=t;
   }catch(e){
     document.documentElement.dataset.theme="dark";
@@ -26,7 +26,7 @@
      EXTERNAL SDKs
 ========================= -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
@@ -75,19 +75,7 @@
   --ease:cubic-bezier(.22,1,.36,1);
 }
 
-html[data-theme="light"]{
-  --bg:#f4f6fb;
-  --bg2:#eef1f8;
-  --panel:rgba(255,255,255,.82);
-  --panel2:rgba(255,255,255,.94);
-  --panel3:#fff;
-  --text:#101322;
-  --muted:#687087;
-  --muted2:#8b93a7;
-  --border:rgba(15,22,40,.1);
-  --border2:rgba(111,81,240,.28);
-  --shadow:0 25px 70px rgba(45,55,90,.16);
-}
+
 
 *{
   box-sizing:border-box;
@@ -116,6 +104,9 @@ button,input,textarea{
 }
 
 button{
+  box-sizing:border-box;
+  max-width:100%;
+  flex-shrink:0;
   border:0;
   cursor:pointer;
   color:inherit;
@@ -507,28 +498,11 @@ textarea:focus-visible{
   margin-bottom:17px;
 }
 
-.turnstile-shell{
-  min-height:70px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
 
-.turnstile-error{
-  display:none;
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:12px;
-  color:#ff8da5;
-  border:1px solid rgba(255,80,110,.45);
-  background:rgba(255,45,75,.08);
-  font-size:12px;
-}
 
-.turnstile-error.show{
-  display:block;
-}
+
+
+
 
 .google-wrap{
   position:relative;
@@ -536,28 +510,9 @@ textarea:focus-visible{
   margin-top:14px;
 }
 
-.google-lock{
-  position:absolute;
-  inset:0;
-  z-index:5;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:12px;
-  border:1px solid transparent;
-  background:rgba(8,10,18,.38);
-  cursor:pointer;
-  color:#aab1c4;
-  font-size:12px;
-  backdrop-filter:blur(3px);
-}
 
-.google-lock.error{
-  border-color:#ff5577;
-  color:#ff8ca4;
-  background:rgba(255,55,90,.09);
-  animation:shake .35s ease;
-}
+
+
 
 @keyframes shake{
   25%{transform:translateX(-5px)}
@@ -572,29 +527,11 @@ textarea:focus-visible{
   justify-content:center;
 }
 
-.local-mode{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border-radius:12px;
-  color:var(--muted);
-  background:rgba(255,255,255,.035);
-  border:1px solid var(--border);
-  transition:.25s var(--ease);
-}
 
-.local-mode:hover{
-  color:var(--text);
-  border-color:var(--border2);
-  transform:translateY(-2px);
-}
 
-.cf-note{
-  text-align:center;
-  color:#687187;
-  font-size:10px;
-  margin-top:14px;
-}
+
+
+
 
 /* =========================================================
    SIDEBAR
@@ -2046,10 +1983,7 @@ textarea:focus-visible{
     font-size:37px;
   }
 
-  .turnstile-shell{
-    transform:scale(.92);
-    transform-origin:center;
-  }
+  
 
   .profile-mini{
     padding-bottom:max(8px,env(safe-area-inset-bottom));
@@ -2071,46 +2005,25 @@ textarea:focus-visible{
    LIGHT MODE OVERRIDES
 ========================================================= */
 
-html[data-theme="light"] .sidebar{
-  background:rgba(247,249,253,.82);
-}
 
-html[data-theme="light"] .chat-main{
-  background:linear-gradient(180deg,rgba(245,247,252,.7),rgba(237,240,247,.8));
-}
 
-html[data-theme="light"] .topbar{
-  background:rgba(255,255,255,.72);
-}
 
-html[data-theme="light"] .composer{
-  background:rgba(255,255,255,.94);
-}
 
-html[data-theme="light"] .message-bubble{
-  background:rgba(255,255,255,.9);
-}
 
-html[data-theme="light"] .message-row.user .message-bubble{
-  background:linear-gradient(145deg,#eee9ff,#e9e7ff);
-}
 
-html[data-theme="light"] .modal{
-  background:#fff;
-}
 
-html[data-theme="light"] #welcome{
-  background:rgba(245,247,252,.78);
-}
 
-html[data-theme="light"] .welcome-card{
-  background:rgba(255,255,255,.93);
-}
 
-html[data-theme="light"] #boot{
-  background:#f3f5fa;
-  color:#111;
-}
+
+
+
+
+
+
+
+
+
+
 </style>
 </head>
 
@@ -2247,7 +2160,7 @@ html[data-theme="light"] #boot{
     </div>
 
     <h1 class="welcome-title">
-      Xin chào <span id="welcomeName" class="gradient-text">Minh</span> 👋
+      Xin chào <span id="welcomeName" class="gradient-text">bạn</span> 👋
     </h1>
 
     <div class="welcome-desc">
@@ -2258,30 +2171,10 @@ html[data-theme="light"] #boot{
     <div class="login-box">
       <div class="login-title">Đăng nhập NoxAI</div>
       <div class="login-desc">
-        Xác minh Cloudflare trước khi tiếp tục với tài khoản Google.
+        Đăng nhập an toàn và tiếp tục với tài khoản Google.
       </div>
-
-      <div class="turnstile-shell">
-        <div id="turnstileWidget"></div>
-      </div>
-
-      <div id="turnstileError" class="turnstile-error">
-        Vui lòng xác minh CAPTCHA trước khi đăng nhập Google.
-      </div>
-
-      <div class="google-wrap">
+<div class="google-wrap">
         <div id="googleButton"></div>
-        <div id="googleLock" class="google-lock">
-          🔒 Vui lòng xác minh CAPTCHA trước
-        </div>
-      </div>
-
-      <button id="localModeBtn" class="local-mode">
-        Tiếp tục ở chế độ Local
-      </button>
-
-      <div class="cf-note">
-        Protected by Cloudflare Turnstile
       </div>
     </div>
   </div>
@@ -2369,9 +2262,6 @@ html[data-theme="light"] #boot{
       </div>
 
       <div class="topbar-right">
-        <button id="themeBtn" class="icon-btn" aria-label="Đổi giao diện">
-          <svg id="themeIcon"><use href="#i-moon"></use></svg>
-        </button>
 
         <button id="settingsBtn" class="icon-btn desktop-only" aria-label="Cài đặt">
           <svg><use href="#i-settings"></use></svg>
@@ -2716,10 +2606,7 @@ const CONFIG = {
 
   DEVELOPER_EMAIL:
     "hminhgalaxy@gmail.com",
-
-  /* Public Turnstile site key.
-     NEVER put the Cloudflare secret key here. */
-  TURNSTILE_SITE_KEY:
+TURNSTILE_SITE_KEY:
     "0x4AAAAAAE9qmdAIj6witap6",
 
   /*
@@ -2732,8 +2619,6 @@ const CONFIG = {
    *
    * The secret must live ONLY on that backend.
    */
-  TURNSTILE_SERVER_VERIFY:
-    "/api/verify-turnstile",
 
   FIREBASE: {
     apiKey: "AIzaSyDCn8HaXrDvksW56uAQxeooEfiZdVcU-Og",
@@ -2789,9 +2674,6 @@ const state = {
   isGenerating:false,
   generationId:0,
 
-  turnstileToken:null,
-  turnstileWidgetId:null,
-  turnstileVerified:false,
 
   sidebarOpen:false,
   searchTerm:"",
@@ -2856,7 +2738,7 @@ const DOM = {
 
   voiceBtn:$("voiceBtn"),
 
-  themeBtn:$("themeBtn"),
+  
   settingsBtn:$("settingsBtn"),
   exportBtn:$("exportBtn"),
   profileBtn:$("profileBtn"),
@@ -2893,12 +2775,6 @@ const DOM = {
   toastHost:$("toastHost"),
 
   googleButton:$("googleButton"),
-  googleLock:$("googleLock"),
-
-  turnstileWidget:$("turnstileWidget"),
-  turnstileError:$("turnstileError"),
-
-  localModeBtn:$("localModeBtn"),
 
   quotaPro:$("quotaPro"),
   quotaRt:$("quotaRt"),
@@ -3156,15 +3032,7 @@ function initInteractionEffects(){
    THEME
 ========================================================= */
 
-function effectiveTheme(){
-  if(state.settings.theme==="system"){
-    return matchMedia("(prefers-color-scheme:light)").matches
-      ? "light"
-      : "dark";
-  }
-
-  return state.settings.theme;
-}
+function effectiveTheme(){ return "dark"; }
 
 function applyTheme(){
   const theme=effectiveTheme();
@@ -3184,20 +3052,7 @@ function applyTheme(){
   }
 }
 
-function cycleTheme(){
-  const order=["dark","light","system"];
-  const i=order.indexOf(state.settings.theme);
 
-  state.settings.theme=order[(i+1)%order.length];
-
-  applyTheme();
-  saveSettingsLocal();
-
-  showToast(
-    "Theme: "+
-    state.settings.theme
-  );
-}
 
 
 /* =========================================================
@@ -3998,7 +3853,7 @@ function renderMessages(){
           Quick action opens the Google login modal/flow if
           the visitor has not authenticated.
         */
-        if(!state.authenticated && !state.localMode){
+        if(!state.authenticated){
 
           showLoginRequired();
 
@@ -4729,7 +4584,7 @@ async function sendMessage(){
     return;
   }
 
-  if(!state.authenticated && !state.localMode){
+  if(!state.authenticated){
 
     showLoginRequired();
     return;
@@ -5294,12 +5149,6 @@ function decodeJwtPayload(jwt){
 
 function handleGoogleCredential(response){
 
-  if(!state.turnstileVerified){
-
-    showCaptchaError();
-    return;
-  }
-
   const payload=
     decodeJwtPayload(response?.credential||"");
 
@@ -5314,7 +5163,7 @@ function handleGoogleCredential(response){
 
   state.user={
     sub:String(payload.sub),
-    name:payload.name || "Minh",
+    name:payload.name || "Bạn",
     email:payload.email || "",
     picture:payload.picture || ""
   };
@@ -5413,205 +5262,9 @@ async function finishLogin(){
   DOM.messageInput.focus();
 
   showToast(
-    `Chào ${state.user.name || "Minh"} 👋`
+    `Chào bạn 👋`
   );
 }
-
-function continueLocal(){
-
-  state.user={
-    sub:null,
-    name:"Minh",
-    email:"",
-    picture:""
-  };
-
-  state.authenticated=false;
-  state.localMode=true;
-
-  DOM.welcome.classList.add("hidden");
-
-  loadSettingsLocal();
-
-  loadConversations().then(async()=>{
-
-    if(!state.conversations.length){
-      await createConversation();
-    }else{
-
-      state.activeConversationId=
-        state.conversations[0].id;
-
-      await loadMessages(
-        state.activeConversationId
-      );
-
-      renderConversations();
-      renderMessages();
-      updateChatHeader();
-    }
-
-    updateProfileUI();
-    updateQuotaUI();
-  });
-
-  showToast(
-    "Đang sử dụng NoxAI Local."
-  );
-}
-
-
-/* =========================================================
-   CAPTCHA
-========================================================= */
-
-function showCaptchaError(){
-
-  DOM.turnstileError.classList.add("show");
-  DOM.googleLock.classList.add("error");
-
-  DOM.googleLock.textContent=
-    "⚠ Vui lòng xác minh CAPTCHA trước";
-
-  setTimeout(()=>{
-    DOM.googleLock.classList.remove("error");
-    DOM.googleLock.textContent=
-      "🔒 Vui lòng xác minh CAPTCHA trước";
-  },1800);
-}
-
-async function verifyTurnstileServer(token){
-
-  /*
-    A static HTML file cannot securely hold the Turnstile
-    secret. If /api/verify-turnstile exists, use it.
-    If it doesn't exist, the UI can still use the Turnstile
-    callback as a client-side gate, but that is NOT equivalent
-    to server-side security.
-  */
-
-  try{
-
-    const response=
-      await fetch(
-        CONFIG.TURNSTILE_SERVER_VERIFY,
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json"
-          },
-          body:JSON.stringify({
-            token
-          })
-        }
-      );
-
-    if(!response.ok){
-      return null;
-    }
-
-    const data=
-      await response.json();
-
-    return data?.success===true;
-
-  }catch{
-    return null;
-  }
-}
-
-function onTurnstileSuccess(token){
-
-  state.turnstileToken=token;
-  state.turnstileVerified=true;
-
-  DOM.turnstileError.classList.remove("show");
-
-  DOM.googleLock.style.display="none";
-
-  showToast(
-    "CAPTCHA đã được xác minh."
-  );
-}
-
-function onTurnstileError(){
-
-  state.turnstileToken=null;
-  state.turnstileVerified=false;
-
-  DOM.googleLock.style.display="flex";
-
-  showCaptchaError();
-}
-
-function initTurnstile(){
-
-  if(!window.turnstile){
-
-    setTimeout(initTurnstile,500);
-    return;
-  }
-
-  if(state.turnstileWidgetId!==null){
-    return;
-  }
-
-  try{
-
-    state.turnstileWidgetId=
-      turnstile.render(
-        "#turnstileWidget",
-        {
-          sitekey:CONFIG.TURNSTILE_SITE_KEY,
-          theme:"dark",
-          size:"flexible",
-
-          callback:onTurnstileSuccess,
-
-          "error-callback":onTurnstileError,
-
-          "expired-callback":()=>{
-            state.turnstileToken=null;
-            state.turnstileVerified=false;
-            DOM.googleLock.style.display="flex";
-            showCaptchaError();
-          }
-        }
-      );
-
-  }catch(error){
-
-    console.warn(
-      "Turnstile initialization failed",
-      error
-    );
-
-    /*
-      Do not silently pretend the CAPTCHA passed.
-    */
-    showCaptchaError();
-  }
-}
-
-function showLoginRequired(){
-
-  DOM.welcome.classList.remove("hidden");
-
-  DOM.googleLock.style.display="flex";
-
-  openLoginFocus();
-
-  showCaptchaError();
-}
-
-function openLoginFocus(){
-
-  DOM.welcome.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
-}
-
 
 /* =========================================================
    GOOGLE BUTTON
@@ -6039,13 +5692,7 @@ function initEvents(){
       }
     }
   );
-
-  DOM.themeBtn.addEventListener(
-    "click",
-    cycleTheme
-  );
-
-  DOM.settingsBtn.addEventListener(
+DOM.settingsBtn.addEventListener(
     "click",
     ()=>{
       syncSettingsUI();
@@ -6221,21 +5868,6 @@ function initEvents(){
       );
     });
 
-  DOM.localModeBtn.addEventListener(
-    "click",
-    continueLocal
-  );
-
-  DOM.googleLock.addEventListener(
-    "click",
-    ()=>{
-
-      if(!state.turnstileVerified){
-        showCaptchaError();
-      }
-    }
-  );
-
   window.addEventListener(
     "online",
     ()=>{
@@ -6365,26 +5997,16 @@ async function init(){
   }
 
   initGoogle();
-  initTurnstile();
+
 
   /*
     Cloudflare/Google SDKs may load after the app.
     These retries are intentionally lightweight.
   */
   setTimeout(initGoogle,1500);
-  setTimeout(initTurnstile,1500);
+
 
   updateQuotaUI();
-
-  /*
-    System theme changes.
-  */
-  matchMedia("(prefers-color-scheme:light)")
-    .addEventListener?.("change",()=>{
-      if(state.settings.theme==="system"){
-        applyTheme();
-      }
-    });
 }
 
 
@@ -6476,4 +6098,4 @@ export default async function handler(req,res){
 =============================================================
 -->
 </body>
-                                     </html>
+     </html>
